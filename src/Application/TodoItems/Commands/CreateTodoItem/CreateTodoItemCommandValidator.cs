@@ -1,8 +1,8 @@
 ﻿namespace CleanArchitecture.Application.TodoItems.Commands.CreateTodoItem;
 
-public class CreateTodoItemCommandValidator : AbstractValidator<CreateTodoItemCommand>
+public class CreateShopCommandValidator : AbstractValidator<CreateTodoItemCommand>
 {
-    public CreateTodoItemCommandValidator()
+    public CreateShopCommandValidator()
     {
         RuleFor(v => v.Title)
             .MaximumLength(200)
