@@ -26,10 +26,10 @@ public static class DependencyInjection
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
 #if (UsePostgreSQL)
             options.UseNpgsql(connectionString);
-#elif (UseSqlServer)
-            options.UseSqlServer(connectionString);
-#else
+#elif (UseSqlite)
             options.UseSqlite(connectionString);
+#else
+            options.UseSqlServer(connectionString);
 #endif
             options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
         });

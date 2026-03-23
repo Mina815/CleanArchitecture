@@ -16,12 +16,34 @@ public class ProblemDetailsExceptionHandler : IExceptionHandler
     {
         var (statusCode, problemDetails) = exception switch
         {
-            ValidationException ve => (StatusCodes.Status400BadRequest, (ProblemDetails)new ValidationProblemDetails(ve.Errors)
+            ValidationException ve => ve.Errors.Count > 0
+                ? (StatusCodes.Status400BadRequest, (ProblemDetails)new ValidationProblemDetails(ve.Errors)
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Type = "https://tools.ietf.org/html/rfc9110#section-15.5.1"
+                })
+                : (StatusCodes.Status400BadRequest, new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Type = "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+                    Title = "Bad Request",
+                    Detail = ve.Message
+                }),
+            SlotNotAvailableException sa => (StatusCodes.Status409Conflict, new ProblemDetails
             {
-                Status = StatusCodes.Status400BadRequest,
-                Type = "https://tools.ietf.org/html/rfc9110#section-15.5.1"
+                Status = StatusCodes.Status409Conflict,
+                Type = "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+                Title = "Slot not available",
+                Detail = sa.Message
             }),
-            NotFoundException ne => (StatusCodes.Status404NotFound, new ProblemDetails
+            CancellationNotAllowedException ca => (StatusCodes.Status403Forbidden, new ProblemDetails
+            {
+                Status = StatusCodes.Status403Forbidden,
+                Title = "Cancellation not allowed",
+                Type = "https://tools.ietf.org/html/rfc9110#section-15.5.4",
+                Detail = ca.Message
+            }),
+            CleanArchitecture.Application.Common.Exceptions.NotFoundException ne => (StatusCodes.Status404NotFound, new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
                 Type = "https://tools.ietf.org/html/rfc9110#section-15.5.5",

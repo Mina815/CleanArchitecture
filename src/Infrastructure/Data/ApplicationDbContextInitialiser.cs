@@ -1,8 +1,10 @@
-﻿using CleanArchitecture.Domain.Constants;
+using CleanArchitecture.Domain.Constants;
 using CleanArchitecture.Domain.Entities;
+using CleanArchitecture.Domain.Enums;
 using CleanArchitecture.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -40,9 +42,11 @@ public class ApplicationDbContextInitialiser
     {
         try
         {
-            // See https://jasontaylor.dev/ef-core-database-initialisation-strategies
-            await _context.Database.EnsureDeletedAsync();
-            await _context.Database.EnsureCreatedAsync();
+            //await _context.Database.EnsureDeletedAsync();
+            //await _context.Database.EnsureCreatedAsync();
+
+            // NEW 
+            await _context.Database.MigrateAsync();
         }
         catch (Exception ex)
         {
@@ -66,43 +70,102 @@ public class ApplicationDbContextInitialiser
 
     public async Task TrySeedAsync()
     {
-        // Default roles
-        var administratorRole = new IdentityRole(Roles.Administrator);
-
-        if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
+        foreach (var roleName in new[] { Roles.Administrator, Roles.Customer, Roles.Provider })
         {
-            await _roleManager.CreateAsync(administratorRole);
-        }
-
-        // Default users
-        var administrator = new ApplicationUser { UserName = "administrator@localhost", Email = "administrator@localhost" };
-
-        if (_userManager.Users.All(u => u.UserName != administrator.UserName))
-        {
-            await _userManager.CreateAsync(administrator, "Administrator1!");
-            if (!string.IsNullOrWhiteSpace(administratorRole.Name))
+            if (_roleManager.Roles.All(r => r.Name != roleName))
             {
-                await _userManager.AddToRolesAsync(administrator, new [] { administratorRole.Name });
+                await _roleManager.CreateAsync(new IdentityRole(roleName));
             }
         }
 
-        // Default data
-        // Seed, if necessary
-        if (!_context.TodoLists.Any())
+        var administrator = new ApplicationUser { UserName = "administrator@localhost", Email = "administrator@localhost", FullName = "Administrator" };
+        if (_userManager.Users.All(u => u.UserName != administrator.UserName))
         {
-            _context.TodoLists.Add(new TodoList
-            {
-                Title = "Todo List",
-                Items =
-                {
-                    new TodoItem { Title = "Make a todo list 📃" },
-                    new TodoItem { Title = "Check off the first item ✅" },
-                    new TodoItem { Title = "Realise you've already done two things on the list! 🤯"},
-                    new TodoItem { Title = "Reward yourself with a nice, long nap 🏆" },
-                }
-            });
-
-            await _context.SaveChangesAsync();
+            await _userManager.CreateAsync(administrator, "Administrator1!");
+            await _userManager.AddToRolesAsync(administrator, [Roles.Administrator]);
         }
+
+        var provider = new ApplicationUser { UserName = "provider@localhost", Email = "provider@localhost", FullName = "Demo Provider" };
+        if (_userManager.Users.All(u => u.UserName != provider.UserName))
+        {
+            await _userManager.CreateAsync(provider, "Provider123!");
+            await _userManager.AddToRolesAsync(provider, [Roles.Provider]);
+        }
+
+        var customer = new ApplicationUser { UserName = "customer@localhost", Email = "customer@localhost", FullName = "Demo Customer" };
+        if (_userManager.Users.All(u => u.UserName != customer.UserName))
+        {
+            await _userManager.CreateAsync(customer, "Customer123!");
+            await _userManager.AddToRolesAsync(customer, [Roles.Customer]);
+        }
+
+        if (await _context.ServiceCategories.AnyAsync())
+            return;
+
+        var category = new ServiceCategory
+        {
+            Name = "Hair & Styling",
+            NameAr = "تصفيف الشعر",
+            DisplayOrder = 1,
+            IsActive = true
+        };
+        _context.ServiceCategories.Add(category);
+        await _context.SaveChangesAsync();
+
+        var providerUser = await _userManager.FindByEmailAsync("provider@localhost");
+        Guard.Against.Null(providerUser);
+
+        var center = new BeautyCenter
+        {
+            OwnerId = providerUser.Id,
+            Name = "Jamalek Demo Salon",
+            NameAr = "صالون جمالك التجريبي",
+            Description = "Demo beauty center for Jamalek.",
+            DescriptionAr = "مركز تجميل تجريبي.",
+            IsActive = true,
+            IsVerified = true
+        };
+        _context.BeautyCenters.Add(center);
+        await _context.SaveChangesAsync();
+
+        var branch = new Branch
+        {
+            CenterId = center.Id,
+            Name = "Zamalek Branch",
+            NameAr = "فرع الزمالك",
+            Address = "26th of July Street",
+            City = "Cairo",
+            District = "Zamalek",
+            Phone = "+201234567890",
+            IsActive = true
+        };
+        _context.Branches.Add(branch);
+        await _context.SaveChangesAsync();
+
+        for (var d = 0; d <= 6; d++)
+        {
+            _context.WorkingHours.Add(new WorkingHour
+            {
+                BranchId = branch.Id,
+                DayOfWeek = d,
+                IsClosed = d == 0,
+                OpenTime = new TimeOnly(10, 0),
+                CloseTime = new TimeOnly(22, 0)
+            });
+        }
+
+        _context.Services.Add(new Service
+        {
+            CenterId = center.Id,
+            CategoryId = category.Id,
+            Name = "Women's haircut",
+            NameAr = "قص شعر سيدات",
+            Price = 250m,
+            DurationMinutes = 60,
+            DisplayOrder = 1,
+            IsActive = true
+        });
+
+        await _context.SaveChangesAsync();
     }
 }

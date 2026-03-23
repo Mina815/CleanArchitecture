@@ -18,7 +18,7 @@ public static class Services
     /// The name of the Database Server service.
     /// This service is responsible for hosting the database server (e.g., PostgreSQL, SQL Server, or SQLite).
     /// </summary>
-    public const string DatabaseServer = "dbserver";
+    public const string DatabaseServer = "Server";
 
     /// <summary>
     /// The name of the Database.
