@@ -6,6 +6,8 @@ namespace CleanArchitecture.Web.AcceptanceTests;
 public class AspireSetup
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(60);
+    private const string WebApiName = "webapi";
+    private const string WebFrontendName = "webfrontend";
 
     public static IDistributedApplicationTestingBuilder Builder { get; private set; } = null!;
     public static DistributedApplication App { get; private set; } = null!;
@@ -17,7 +19,7 @@ public class AspireSetup
         var cancellationToken = cts.Token;
 
         Builder = await DistributedApplicationTestingBuilder
-             .CreateAsync<Projects.AppHost>(
+             .CreateAsync<global::Program>(
                 args: [],
                 configureBuilder: (options, _) =>
                 {
@@ -48,8 +50,8 @@ public class AspireSetup
             .WaitAsync(cancellationToken);
 
         await Task.WhenAll(
-            App.ResourceNotifications.WaitForResourceHealthyAsync(Services.WebApi, cancellationToken).WaitAsync(cancellationToken),
-            App.ResourceNotifications.WaitForResourceHealthyAsync(Services.WebFrontend, cancellationToken).WaitAsync(cancellationToken));
+            App.ResourceNotifications.WaitForResourceHealthyAsync(WebApiName, cancellationToken).WaitAsync(cancellationToken),
+            App.ResourceNotifications.WaitForResourceHealthyAsync(WebFrontendName, cancellationToken).WaitAsync(cancellationToken));
     }
 
     [OneTimeTearDown]

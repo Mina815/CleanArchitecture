@@ -1,24 +1,18 @@
-using CleanArchitecture.Shared;
+const string databaseName = "CleanArchitectureDb";
+var builder = DistributedApplication.CreateBuilder(args);
 
-namespace CleanArchitecture.TestAppHost;
+#if (UsePostgreSQL)
+builder.AddPostgres("dbserver")
+    .AddDatabase(databaseName);
+#elif (UseSqlServer)
+builder.AddSqlServer("dbserver")
+    .AddDatabase(databaseName);
+#else
+builder
+    .AddSqlite(databaseName);
+#endif
 
-public class Program
+builder.Build().Run();
+public partial class Program
 {
-    public static void Main(string[] args)
-    {
-        var builder = DistributedApplication.CreateBuilder(args);
-
-        #if (UsePostgreSQL)
-        builder.AddPostgres(Services.DatabaseServer)
-            .AddDatabase(Services.Database);
-        #elif (UseSqlServer)
-        builder.AddSqlServer(Services.DatabaseServer)
-            .AddDatabase(Services.Database);
-        #else
-        builder
-            .AddSqlite(Services.Database);
-        #endif
-
-        builder.Build().Run();
-    }
 }

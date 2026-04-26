@@ -5,6 +5,7 @@ namespace CleanArchitecture.Application.FunctionalTests;
 [SetUpFixture]
 public class FunctionalTestSetup
 {
+    private const string DatabaseName = "CleanArchitectureDb";
     internal static IServiceScopeFactory ScopeFactory { get; private set; } = null!;
     internal static DatabaseResetter? DbResetter { get; private set; }
 
@@ -18,7 +19,7 @@ public class FunctionalTestSetup
         var cancellationToken = cts.Token;
 
         var builder = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.TestAppHost>(
+            .CreateAsync<global::Program>(
                 args: [],
                 configureBuilder: (options, _) =>
                 {
@@ -36,9 +37,9 @@ public class FunctionalTestSetup
             .WaitAsync(cancellationToken);
 
         await _app.ResourceNotifications.WaitForResourceHealthyAsync(
-            Services.Database, cancellationToken);
+            DatabaseName, cancellationToken);
 
-        var connectionString = (await _app.GetConnectionStringAsync(Services.Database))!;
+        var connectionString = (await _app.GetConnectionStringAsync(DatabaseName))!;
 
         _factory = new WebApiFactory(connectionString);
         ScopeFactory = _factory.Services.GetRequiredService<IServiceScopeFactory>();

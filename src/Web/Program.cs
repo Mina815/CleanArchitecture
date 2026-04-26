@@ -1,4 +1,5 @@
 using CleanArchitecture.Infrastructure.Data;
+using CleanArchitecture.Web.Hubs;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +37,8 @@ app.MapOpenApi();
 app.MapScalarApiReference();
 
 app.UseExceptionHandler(options => { });
+app.UseAuthentication();
+app.UseAuthorization();
 
 #if (UseApiOnly)
 app.Map("/", () => Results.Redirect("/scalar"));
@@ -43,6 +46,7 @@ app.Map("/", () => Results.Redirect("/scalar"));
 
 app.MapDefaultEndpoints();
 app.MapEndpoints(typeof(Program).Assembly);
+app.MapHub<BookingHub>("/hubs/bookings");
 
 #if (!UseApiOnly)
 app.MapFallbackToFile("index.html");

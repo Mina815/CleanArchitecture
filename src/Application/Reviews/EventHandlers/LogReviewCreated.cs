@@ -1,22 +1,37 @@
+using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Domain.Events;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Reviews.EventHandlers;
 
 public class LogReviewCreated : INotificationHandler<ReviewCreatedEvent>
 {
-    private readonly ILogger<LogReviewCreated> _logger;
+    private readonly IApplicationDbContext _context;
 
-    public LogReviewCreated(ILogger<LogReviewCreated> logger)
+    public LogReviewCreated(IApplicationDbContext context)
     {
-        _logger = logger;
+        _context = context;
     }
 
-    public Task Handle(ReviewCreatedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(ReviewCreatedEvent notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Jamalek domain event: review {ReviewId} created for center {CenterId}.",
-            notification.Review.Id,
-            notification.Review.CenterId);
-        return Task.CompletedTask;
+        var centerId = notification.Review.CenterId;
+        var approvedReviews = _context.Reviews
+            .Where(r => r.CenterId == centerId && r.IsApproved);
+
+        var total = await approvedReviews.CountAsync(cancellationToken);
+        var average = total == 0
+            ? 0m
+            : Convert.ToDecimal(await approvedReviews.AverageAsync(r => r.Rating, cancellationToken));
+
+        var center = await _context.BeautyCenters.FirstOrDefaultAsync(c => c.Id == centerId, cancellationToken);
+        if (center is null)
+        {
+            return;
+        }
+
+        center.TotalReviews = total;
+        center.AverageRating = Math.Round(average, 2, MidpointRounding.AwayFromZero);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

@@ -1,28 +1,29 @@
-using CleanArchitecture.Shared;
-
 var builder = DistributedApplication.CreateBuilder(args);
+const string databaseName = "CleanArchitectureDb";
+const string webApiName = "webapi";
+const string webFrontendName = "webfrontend";
 
 builder.AddAzureContainerAppEnvironment("aca-env");
 
 #if (UsePostgreSQL)
 var databaseServer = builder
-    .AddAzurePostgresFlexibleServer(Services.DatabaseServer)
+    .AddAzurePostgresFlexibleServer("dbserver")
     .WithPasswordAuthentication()
     .RunAsContainer(container => 
         container.WithLifetime(ContainerLifetime.Persistent))
-    .AddDatabase(Services.Database);
+    .AddDatabase(databaseName);
 #elif (UseSqlServer)
 var databaseServer = builder
-    .AddAzureSqlServer(Services.DatabaseServer)
+    .AddAzureSqlServer("dbserver")
     .RunAsContainer(container => 
         container.WithLifetime(ContainerLifetime.Persistent))
-    .AddDatabase(Services.Database);
+    .AddDatabase(databaseName);
 #else
 var databaseServer = builder
-    .AddSqlite(Services.Database);
+    .AddSqlite(databaseName);
 #endif
 
-var web = builder.AddProject<Projects.Web>(Services.WebApi)
+var web = builder.AddProject<Projects.Web>(webApiName)
     .WithReference(databaseServer)
     .WaitFor(databaseServer)
     .WithExternalHttpEndpoints()
@@ -36,7 +37,7 @@ var web = builder.AddProject<Projects.Web>(Services.WebApi)
 #if (!UseApiOnly)
 if (builder.ExecutionContext.IsRunMode)
 {
-    builder.AddJavaScriptApp(Services.WebFrontend, "./../Web/ClientApp")
+    builder.AddJavaScriptApp(webFrontendName, "./../Web/ClientApp")
         .WithRunScript("start")
         .WithReference(web)
         .WaitFor(web)

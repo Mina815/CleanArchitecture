@@ -1,23 +1,27 @@
 ﻿{
-  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:61846",
+      "sslPort": 44312
+    }
+  },
   "profiles": {
-    "http": {
+    "CleanLRN.Web": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "scalar",
-      "applicationUrl": "http://localhost:5000",
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
       "environmentVariables": {
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "https": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
+    "IIS Express": {
+      "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "scalar",
-      "applicationUrl": "https://localhost:5001;http://localhost:5000",
       "environmentVariables": {
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }

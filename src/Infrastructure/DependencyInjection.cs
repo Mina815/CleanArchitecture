@@ -1,5 +1,6 @@
-﻿using CleanArchitecture.Application.Common.Interfaces;
+using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Domain.Constants;
+using CleanArchitecture.Infrastructure.Auth;
 using CleanArchitecture.Infrastructure.Data;
 using CleanArchitecture.Infrastructure.Data.Interceptors;
 using CleanArchitecture.Infrastructure.Identity;
@@ -15,8 +16,9 @@ public static class DependencyInjection
 {
     public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
     {
-        var connectionString = builder.Configuration.GetConnectionString(Services.Database);
-        Guard.Against.Null(connectionString, message: $"Connection string '{Services.Database}' not found.");
+        const string databaseConnectionName = "CleanArchitectureDb";
+        var connectionString = builder.Configuration.GetConnectionString(databaseConnectionName);
+        Guard.Against.Null(connectionString, message: $"Connection string '{databaseConnectionName}' not found.");
 
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
@@ -44,24 +46,9 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
-#if (UseApiOnly)
-        builder.Services.AddAuthentication()
-            .AddBearerToken(IdentityConstants.BearerScheme);
-
-        builder.Services.AddAuthorizationBuilder();
-
-        builder.Services
-            .AddIdentityCore<ApplicationUser>()
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddApiEndpoints();
-#else
-        builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultScheme = IdentityConstants.ApplicationScheme;
-                options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-            })
-            .AddIdentityCookies();
+        builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+        builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, BCryptPasswordHasher>();
+        builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
         builder.Services.AddAuthorizationBuilder();
 
@@ -72,7 +59,6 @@ public static class DependencyInjection
             .AddSignInManager()
             .AddDefaultTokenProviders()
             .AddApiEndpoints();
-#endif
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddTransient<IIdentityService, IdentityService>();
