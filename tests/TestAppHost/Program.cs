@@ -9,7 +9,8 @@ builder.AddSqlServer("dbserver")
     .AddDatabase(databaseName);
 #else
 builder
-    .AddSqlite(databaseName);
+    .AddSqlServer("dbserver")
+    .AddDatabase(databaseName);
 #endif
 
 builder.Build().Run();

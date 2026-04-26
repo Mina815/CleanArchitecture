@@ -20,7 +20,10 @@ var databaseServer = builder
     .AddDatabase(databaseName);
 #else
 var databaseServer = builder
-    .AddSqlite(databaseName);
+    .AddAzureSqlServer("dbserver")
+    .RunAsContainer(container => 
+        container.WithLifetime(ContainerLifetime.Persistent))
+    .AddDatabase(databaseName);
 #endif
 
 var web = builder.AddProject<Projects.Web>(webApiName)
