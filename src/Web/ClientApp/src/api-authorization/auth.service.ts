@@ -1,39 +1,67 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
-import { LoginRequest, RegisterRequest, UsersClient } from '../app/web-api-client';
+import { map, tap } from 'rxjs/operators';
+import { AuthClient, LoginRequest, RegisterRequest } from '../app/web-api-client';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private static readonly TOKEN_STORAGE_KEY = 'authToken';
   private _isAuthenticated = new BehaviorSubject<boolean>(false);
   isAuthenticated$ = this._isAuthenticated.asObservable();
 
-  constructor(private usersClient: UsersClient) {}
+  constructor(private authClient: AuthClient) {}
 
   initialize(): Observable<boolean> {
-    return this.usersClient.infoGET().pipe(
-      map(() => true),
-      catchError(() => of(false)),
-      tap(isAuth => this._isAuthenticated.next(isAuth))
-    );
+    const token = this.getToken();
+    const isAuthenticated = !!token && !this.isTokenExpired(token);
+    this._isAuthenticated.next(isAuthenticated);
+    return of(isAuthenticated);
   }
 
-  login(email: string, password: string): Observable<void> {
-    return this.usersClient.login(true, undefined, new LoginRequest({ email, password })).pipe(
+  login(phone: string, password: string): Observable<void> {
+    return this.authClient.login(new LoginRequest({ phone, password })).pipe(
+      tap(result => this.setToken(result.token)),
       tap(() => this._isAuthenticated.next(true)),
       map(() => void 0)
     );
   }
 
-  register(email: string, password: string): Observable<void> {
-    return this.usersClient.register(new RegisterRequest({ email, password }));
+  register(phone: string, name: string, email: string, password: string, role: string): Observable<void> {
+    return this.authClient.register(new RegisterRequest({ phone, name, email, password, role })).pipe(
+      map(() => void 0)
+    );
   }
 
   logout(): Observable<void> {
-    return this.usersClient.logout({}).pipe(
-      tap(() => this._isAuthenticated.next(false))
-    );
+    this.clearToken();
+    this._isAuthenticated.next(false);
+    return of(void 0);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem(AuthService.TOKEN_STORAGE_KEY);
+  }
+
+  private setToken(token: string): void {
+    localStorage.setItem(AuthService.TOKEN_STORAGE_KEY, token);
+  }
+
+  private clearToken(): void {
+    localStorage.removeItem(AuthService.TOKEN_STORAGE_KEY);
+  }
+
+  private isTokenExpired(token: string): boolean {
+    try {
+      const [, payloadBase64] = token.split('.');
+      if (!payloadBase64) return true;
+      const payload = JSON.parse(atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/')));
+      const exp = payload?.exp;
+      if (typeof exp !== 'number') return true;
+      return Date.now() >= exp * 1000;
+    } catch {
+      return true;
+    }
   }
 }

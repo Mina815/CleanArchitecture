@@ -11,7 +11,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "generate-api": "nswag run /runtime:Net100"
+    "generate-api": "dotnet build ../Web.csproj && nswag run /runtime:Net100"
   },
   "private": true,
   "dependencies": {

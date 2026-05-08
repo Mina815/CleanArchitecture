@@ -12,6 +12,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <!--<DefineConstants>$(DefineConstants);UseSqlServer</DefineConstants>-->
-    <DefineConstants>$(DefineConstants);UsePostgreSQL</DefineConstants>
+    <!--<DefineConstants>$(DefineConstants);UsePostgreSQL</DefineConstants>-->
   </PropertyGroup>
 </Project>

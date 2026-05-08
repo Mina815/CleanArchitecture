@@ -9,7 +9,7 @@ import { firstValueFrom } from 'rxjs';
   templateUrl: './login.component.html'
 })
 export class LoginComponent {
-  email = '';
+  phone = '';
   password = '';
   invalid = false;
 
@@ -23,7 +23,7 @@ export class LoginComponent {
   async login() {
     this.invalid = false;
     try {
-      await firstValueFrom(this.authService.login(this.email, this.password));
+      await firstValueFrom(this.authService.login(this.phone, this.password));
       const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
       await this.router.navigateByUrl(returnUrl);
     } catch {
