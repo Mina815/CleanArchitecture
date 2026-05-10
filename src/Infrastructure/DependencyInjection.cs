@@ -49,6 +49,7 @@ public static class DependencyInjection
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
         builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, BCryptPasswordHasher>();
         builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
 
         builder.Services.AddAuthorizationBuilder();
 

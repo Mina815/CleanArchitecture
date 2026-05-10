@@ -1,8 +1,6 @@
-using CleanArchitecture.Application.Common.Interfaces;
-using CleanArchitecture.Domain.Constants;
-using CleanArchitecture.Infrastructure.Identity;
+using CleanArchitecture.Application.Auth.Commands.Login;
+using CleanArchitecture.Application.Auth.Commands.Register;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
 
 namespace CleanArchitecture.Web.Endpoints;
 
@@ -15,64 +13,27 @@ public class Auth : IEndpointGroup
     }
 
     [EndpointSummary("Register user account")]
-    public static async Task<Results<Ok<AuthTokenResponse>, ValidationProblem>> Register(
-        RegisterRequest request,
-        UserManager<ApplicationUser> userManager,
-        IJwtTokenService jwtTokenService)
+    public static async Task<Ok<AuthTokenResponse>> Register(
+        RegisterCommand command,
+        ISender sender)
     {
-        var role = string.Equals(request.Role, Roles.Provider, StringComparison.OrdinalIgnoreCase)
-            ? Roles.Provider
-            : Roles.Customer;
-
-        var user = new ApplicationUser
-        {
-            UserName = request.Phone,
-            PhoneNumber = request.Phone,
-            Email = request.Email,
-            FullName = request.Name,
-            IsActive = true
-        };
-
-        var createResult = await userManager.CreateAsync(user, request.Password);
-        if (!createResult.Succeeded)
-        {
-            return TypedResults.ValidationProblem(createResult.Errors
-                .GroupBy(e => e.Code)
-                .ToDictionary(g => g.Key, g => g.Select(e => e.Description).ToArray()));
-        }
-
-        await userManager.AddToRoleAsync(user, role);
-        var token = await jwtTokenService.GenerateTokenAsync(user.Id, user.PhoneNumber!, [role]);
-        return TypedResults.Ok(new AuthTokenResponse(token.Token, token.ExpiresAtUtc, user.Id, user.PhoneNumber!, [role]));
+        var result = await sender.Send(command);
+        return TypedResults.Ok(new AuthTokenResponse(result.Token, result.ExpiresAtUtc, result.UserId, result.Phone, result.Roles));
     }
 
     [EndpointSummary("Login with phone and password")]
     public static async Task<Results<Ok<AuthTokenResponse>, UnauthorizedHttpResult>> Login(
-        LoginRequest request,
-        UserManager<ApplicationUser> userManager,
-        IJwtTokenService jwtTokenService)
+        LoginCommand command,
+        ISender sender)
     {
-        var user = await userManager.FindByNameAsync(request.Phone);
-        if (user is null || !user.IsActive)
+        var result = await sender.Send(command);
+        if (result is null)
         {
             return TypedResults.Unauthorized();
         }
 
-        var ok = await userManager.CheckPasswordAsync(user, request.Password);
-        if (!ok)
-        {
-            return TypedResults.Unauthorized();
-        }
-
-        var roles = await userManager.GetRolesAsync(user);
-        var rolesArray = roles.ToArray();
-        var token = await jwtTokenService.GenerateTokenAsync(user.Id, user.PhoneNumber ?? request.Phone, rolesArray);
-        return TypedResults.Ok(new AuthTokenResponse(token.Token, token.ExpiresAtUtc, user.Id, user.PhoneNumber ?? request.Phone, rolesArray));
+        return TypedResults.Ok(new AuthTokenResponse(result.Token, result.ExpiresAtUtc, result.UserId, result.Phone, result.Roles));
     }
 }
-
-public record RegisterRequest(string Phone, string Name, string? Email, string Password, string Role);
-
-public record LoginRequest(string Phone, string Password);
 
 public record AuthTokenResponse(string Token, DateTimeOffset ExpiresAtUtc, string UserId, string Phone, IReadOnlyCollection<string> Roles);

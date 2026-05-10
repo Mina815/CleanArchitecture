@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { AuthClient, LoginRequest, RegisterRequest } from '../app/web-api-client';
+import { AuthClient, LoginCommand, RegisterCommand } from '../app/web-api-client';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +21,7 @@ export class AuthService {
   }
 
   login(phone: string, password: string): Observable<void> {
-    return this.authClient.login(new LoginRequest({ phone, password })).pipe(
+    return this.authClient.login(new LoginCommand({ phone, password })).pipe(
       tap(result => this.setToken(result.token)),
       tap(() => this._isAuthenticated.next(true)),
       map(() => void 0)
@@ -29,7 +29,7 @@ export class AuthService {
   }
 
   register(phone: string, name: string, email: string, password: string, role: string): Observable<void> {
-    return this.authClient.register(new RegisterRequest({ phone, name, email, password, role })).pipe(
+    return this.authClient.register(new RegisterCommand({ phone, name, email, password, role })).pipe(
       map(() => void 0)
     );
   }
