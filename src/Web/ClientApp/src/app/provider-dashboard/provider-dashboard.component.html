@@ -1,0 +1,51 @@
+<div class="page-header">
+  <div>
+    <h1>Provider Dashboard</h1>
+    <p>Today's bookings — auto-refreshes every 30s</p>
+  </div>
+  <button (click)="load()" [attr.aria-busy]="loading">Refresh</button>
+</div>
+
+<label>Branch
+  <select [(ngModel)]="branchId" (ngModelChange)="load()">
+    @for (b of branches; track b.id) {
+      <option [ngValue]="b.id">{{ b.name }} — {{ b.city }}</option>
+    }
+  </select>
+</label>
+
+<div class="dashboard-stats">
+  <article><strong>{{ bookings.length }}</strong><small>Total Today</small></article>
+  <article><strong>{{ pendingCount }}</strong><small>Pending</small></article>
+  <article><strong>{{ confirmedCount }}</strong><small>Confirmed</small></article>
+</div>
+
+@if (loading && bookings.length === 0) {
+  <p><em>Loading...</em></p>
+} @else if (bookings.length === 0) {
+  <article><p>No bookings scheduled for today at this branch.</p></article>
+} @else {
+  <table>
+    <thead>
+      <tr><th>Service</th><th>Time</th><th>Status</th><th>Amount</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      @for (b of bookings; track b.id) {
+        <tr>
+          <td>{{ b.serviceName }}</td>
+          <td>{{ b.startTime | slice:0:5 }} – {{ b.endTime | slice:0:5 }}</td>
+          <td><span class="badge" [class]="statusClass(b.status)">{{ b.status }}</span></td>
+          <td>{{ b.totalAmount }} EGP</td>
+          <td style="display:flex; gap:0.35rem; flex-wrap:wrap;">
+            @if (b.status === 'Pending') {
+              <button (click)="confirm(b.id)">Confirm</button>
+            }
+            @if (b.status === 'Confirmed') {
+              <button (click)="complete(b.id)">Complete</button>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

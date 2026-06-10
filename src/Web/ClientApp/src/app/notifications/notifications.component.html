@@ -1,0 +1,28 @@
+<div class="page-header">
+  <div>
+    <h1>Notifications</h1>
+    <p>Booking updates and reminders</p>
+  </div>
+  <button class="secondary" (click)="markAllRead()">Mark all read</button>
+</div>
+
+<label>
+  <input type="checkbox" [(ngModel)]="unreadOnly" (change)="load()" />
+  Show unread only
+</label>
+
+@if (loading) {
+  <p><em>Loading...</em></p>
+} @else if (notifications.length === 0) {
+  <article><p>No notifications.</p></article>
+} @else {
+  <section>
+    @for (n of notifications; track n.id) {
+      <div class="notification-item" [class.notification-item--unread]="!n.isRead" (click)="markRead(n)">
+        <strong>{{ n.title }}</strong>
+        <p style="margin:0.25rem 0">{{ n.message }}</p>
+        <small>{{ n.isRead ? 'Read' : 'Unread' }}</small>
+      </div>
+    }
+  </section>
+}

@@ -1,4 +1,5 @@
 using CleanArchitecture.Application.Common.Exceptions;
+using CleanArchitecture.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,6 +40,18 @@ public class ProblemDetailsExceptionHandler : IExceptionHandler
                 Status = StatusCodes.Status403Forbidden,
                 Title = "Forbidden",
                 Type = "https://tools.ietf.org/html/rfc9110#section-15.5.4"
+            }),
+            SlotNotAvailableException sne => (StatusCodes.Status409Conflict, new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Slot not available",
+                Detail = sne.Message
+            }),
+            CancellationNotAllowedException cne => (StatusCodes.Status400BadRequest, new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Cancellation not allowed",
+                Detail = cne.Message
             }),
             _ => (-1, null)
         };

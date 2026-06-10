@@ -1,4 +1,5 @@
 @use "sass:map";
+@use "styles/jamalek";
 @use "@picocss/pico/scss/index" as * with (
   $theme-color: "violet",
   $semantic-root-element: "app-root",

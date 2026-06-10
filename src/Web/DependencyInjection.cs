@@ -34,6 +34,8 @@ public static class DependencyInjection
         });
 
         builder.Services.AddCors();
+        builder.Services.AddSignalR();
+        builder.Services.AddScoped<IBookingHubService, BookingHubService>();
     }
 
     public static void AddKeyVaultIfConfigured(this IHostApplicationBuilder builder)

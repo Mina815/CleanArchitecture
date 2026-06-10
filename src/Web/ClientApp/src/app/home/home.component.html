@@ -1,15 +1,30 @@
-<h1>Welcome</h1>
-<p>A full-stack application with an <a href='https://angular.dev/'>Angular</a> frontend and an <a href='https://get.asp.net/'>ASP.NET Core</a> backend, built with:</p>
-<ul>
-  <li><a href='https://get.asp.net/'>ASP.NET Core</a> and <a href='https://learn.microsoft.com/en-us/dotnet/csharp/'>C#</a> for cross-platform server-side code</li>
-  <li><a href='https://angular.dev/'>Angular</a> and <a href='http://www.typescriptlang.org/'>TypeScript</a> for client-side code</li>
-  <li><a href='https://picocss.com/'>Pico CSS</a> for layout and styling</li>
-  <li><a href='https://lucide.dev/'>Lucide</a> for icons</li>
-</ul>
-<p>To help you get started:</p>
-<ul>
-  <li><strong>Client-side navigation</strong>. Click <em>Counter</em> then <em>Back</em> to return here.</li>
-  <li><strong>Angular CLI integration</strong>. In development mode, there's no need to run <code>ng serve</code>. It runs in the background automatically, so your client-side resources are dynamically built on demand and the page refreshes when you modify any file.</li>
-  <li><strong>Efficient production builds</strong>. In production mode, development-time features are disabled, and your <code>dotnet publish</code> configuration automatically invokes <code>ng build</code> to produce minified, ahead-of-time compiled JavaScript files.</li>
-</ul>
-<p>The <code>ClientApp</code> subdirectory is a standard Angular CLI application. Open a command prompt there to run any <code>ng</code> command (e.g., <code>ng test</code>), or use <code>npm</code> to install extra packages.</p>
+<section class="jamalek-hero">
+  <h1>Jamalek</h1>
+  <p>Book beauty appointments at Egypt's finest salons. Browse centers, pick your time, and glow.</p>
+  <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+    <a [routerLink]="['/centers']" role="button">Browse Centers</a>
+    <a [routerLink]="['/register']" role="button" class="secondary">Get Started</a>
+  </div>
+</section>
+
+<div class="jamalek-grid">
+  <article class="center-card">
+    <header><strong>For Customers</strong></header>
+    <p>Discover salons by city, check real-time availability, book in seconds, and manage your appointments.</p>
+    <footer><a [routerLink]="['/centers']">Explore salons →</a></footer>
+  </article>
+  <article class="center-card">
+    <header><strong>For Providers</strong></header>
+    <p>Manage branches, services, staff, and bookings. Confirm appointments and track your daily schedule.</p>
+    <footer><a [routerLink]="['/provider']">Open dashboard →</a></footer>
+  </article>
+  <article class="center-card">
+    <header><strong>How it works</strong></header>
+    <ol style="margin: 0; padding-left: 1.25rem;">
+      <li>Choose a beauty center & branch</li>
+      <li>Pick a service & available slot</li>
+      <li>Get confirmed by the salon</li>
+      <li>Enjoy your appointment!</li>
+    </ol>
+  </article>
+</div>

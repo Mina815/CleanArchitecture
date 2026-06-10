@@ -1,0 +1,41 @@
+<div class="page-header">
+  <div>
+    <h1>Beauty Centers</h1>
+    <p>Find and book at top salons across Egypt</p>
+  </div>
+</div>
+
+<div class="search-bar">
+  <label>City
+    <input [(ngModel)]="city" (keyup.enter)="load()" placeholder="Cairo" />
+  </label>
+  <label>Search
+    <input [(ngModel)]="search" (keyup.enter)="load()" placeholder="Salon name..." />
+  </label>
+  <button (click)="load()">Search</button>
+</div>
+
+@if (loading) {
+  <p><em>Loading centers...</em></p>
+} @else if (error) {
+  <p class="error">{{ error }}</p>
+} @else if (centers.length === 0) {
+  <article><p>No centers found. Try a different city or search term.</p></article>
+} @else {
+  <div class="jamalek-grid">
+    @for (center of centers; track center.id) {
+      <article class="center-card">
+        <header>
+          <strong>{{ center.name }}</strong>
+          <span class="center-card__ar">{{ center.nameAr }}</span>
+        </header>
+        <p>{{ center.description }}</p>
+        <p><small>📍 {{ center.city || 'Egypt' }}</small></p>
+        <footer>
+          <span class="rating">★ {{ center.averageRating | number:'1.1-1' }} <small>({{ center.totalReviews }})</small></span>
+          <a [routerLink]="['/centers', center.id]" role="button">Book Now</a>
+        </footer>
+      </article>
+    }
+  </div>
+}

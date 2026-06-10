@@ -1,5 +1,10 @@
+using System.Reflection;
 using CleanArchitecture.Infrastructure.Data;
 using Scalar.AspNetCore;
+
+static bool IsOpenApiDocumentGeneration() =>
+    AppDomain.CurrentDomain.GetAssemblies()
+        .Any(a => a.GetName().Name?.Contains("GetDocument", StringComparison.OrdinalIgnoreCase) == true);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,13 +19,16 @@ builder.AddWebServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (!IsOpenApiDocumentGeneration())
 {
-    await app.InitialiseDatabaseAsync();
+    await app.MigrateDatabaseAsync();
+
+    if (app.Environment.IsDevelopment())
+        await app.SeedDatabaseAsync();
 }
-else
+
+if (!app.Environment.IsDevelopment())
 {
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -29,6 +37,9 @@ app.UseCors(static builder =>
     builder.AllowAnyMethod()
         .AllowAnyHeader()
         .AllowAnyOrigin());
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseFileServer();
 
@@ -42,6 +53,7 @@ app.Map("/", () => Results.Redirect("/scalar"));
 #endif
 
 app.MapDefaultEndpoints();
+app.MapHub<CleanArchitecture.Web.Hubs.BookingHub>("/hubs/bookings");
 app.MapEndpoints(typeof(Program).Assembly);
 
 #if (!UseApiOnly)

@@ -1,16 +1,23 @@
 <header>
   <nav>
     <ul>
-      <li><a class="nav-brand" [routerLink]="['/']">Clean Architecture</a></li>
+      <li><a class="nav-brand" [routerLink]="['/']">Jamalek</a></li>
     </ul>
     <ul>
-      <li><a [routerLink]="['/']" [routerLinkActive]="['pico-active']" [routerLinkActiveOptions]="{ exact: true }">Home</a></li>
-      <li><a [routerLink]="['/counter']" [routerLinkActive]="['pico-active']">Counter</a></li>
-      <li><a [routerLink]="['/weather']" [routerLinkActive]="['pico-active']">Weather</a></li>
-      <li><a [routerLink]="['/todo']" [routerLinkActive]="['pico-active']">Tasks</a></li>
+      <li><a [routerLink]="['/centers']" [routerLinkActive]="['pico-active']">Salons</a></li>
+      @if (auth.isAuthenticated) {
+        @if (auth.isCustomer) {
+          <li><a [routerLink]="['/my-bookings']" [routerLinkActive]="['pico-active']">My Bookings</a></li>
+        }
+        <li><a [routerLink]="['/notifications']" [routerLinkActive]="['pico-active']">Notifications</a></li>
+        @if (auth.isProvider) {
+          <li><a [routerLink]="['/provider']" [routerLinkActive]="['pico-active']">Dashboard</a></li>
+        }
+      }
     </ul>
     <ul>
       @if (isAuthenticated$ | async) {
+        <li><small>{{ auth.currentUser?.name }}</small></li>
         <li><a href="#" (click)="logout($event)">Log out</a></li>
       } @else {
         <li><a [routerLink]="['/login']" [routerLinkActive]="['pico-active']">Log in</a></li>

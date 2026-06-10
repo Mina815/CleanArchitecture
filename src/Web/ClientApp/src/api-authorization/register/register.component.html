@@ -1,27 +1,35 @@
 <article>
-  <h2>Register</h2>
+  <h2>Register on Jamalek</h2>
   @if (error) {
     <p class="error">{{ error }}</p>
   }
   <form (ngSubmit)="register()">
-    <label for="email">Email</label>
-    <input type="email" id="email" name="email" [(ngModel)]="email"
-      [attr.aria-invalid]="emailTouched ? !emailValid : null"
-      aria-describedby="email-helper"
-      autocomplete="username"
-      (blur)="emailTouched = true" />
-    <small id="email-helper">
-      {{ emailTouched && !emailValid ? 'Please enter a valid email address.' : '' }}
-    </small>
+    <label for="name">Full Name</label>
+    <input type="text" id="name" name="name" [(ngModel)]="name" required />
+
+    <label for="phone">Phone Number</label>
+    <input type="tel" id="phone" name="phone" [(ngModel)]="phone"
+      placeholder="01xxxxxxxxx"
+      [attr.aria-invalid]="phoneTouched ? !phoneValid : null"
+      (blur)="phoneTouched = true" />
+  @if (phoneTouched && !phoneValid) {
+    <small>Enter a valid Egyptian phone (01xxxxxxxxx).</small>
+  }
+
+    <label for="role">I am a</label>
+    <select id="role" name="role" [(ngModel)]="role">
+      <option value="Customer">Customer</option>
+      <option value="Provider">Beauty Center Provider</option>
+    </select>
+
     <label for="password">Password</label>
     <input type="password" id="password" name="password" [(ngModel)]="password"
       [attr.aria-invalid]="passwordTouched ? !passwordValid : null"
-      aria-describedby="password-helper"
-      autocomplete="new-password"
       (blur)="passwordTouched = true" />
-    <small id="password-helper">
-      {{ passwordTouched && !passwordValid ? 'Password must be at least ' + minPasswordLength + ' characters.' : '' }}
-    </small>
+  @if (passwordTouched && !passwordValid) {
+    <small>Password must be at least {{ minPasswordLength }} characters.</small>
+  }
+
     <button type="submit">Register</button>
     <p style="margin-top: 1rem">Already have an account? <a [routerLink]="['/login']">Log in</a></p>
   </form>

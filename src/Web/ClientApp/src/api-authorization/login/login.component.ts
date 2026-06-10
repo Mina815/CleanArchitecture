@@ -1,6 +1,6 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AuthService } from '../auth.service';
+import { JamalekAuthService } from '../jamalek-auth.service';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -9,12 +9,12 @@ import { firstValueFrom } from 'rxjs';
   templateUrl: './login.component.html'
 })
 export class LoginComponent {
-  email = '';
+  phone = '';
   password = '';
   invalid = false;
 
   constructor(
-    private authService: AuthService,
+    private auth: JamalekAuthService,
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
@@ -23,8 +23,9 @@ export class LoginComponent {
   async login() {
     this.invalid = false;
     try {
-      await firstValueFrom(this.authService.login(this.email, this.password));
-      const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+      const res = await firstValueFrom(this.auth.login(this.phone, this.password));
+      const returnUrl = this.route.snapshot.queryParams['returnUrl']
+        || (res.role === 'Provider' ? '/provider' : '/centers');
       await this.router.navigateByUrl(returnUrl);
     } catch {
       this.invalid = true;

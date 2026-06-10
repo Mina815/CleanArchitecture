@@ -1,0 +1,105 @@
+@if (error && !center) {
+  <p class="error">{{ error }}</p>
+} @else if (!center) {
+  <p><em>Loading...</em></p>
+} @else {
+  <div class="page-header">
+    <div>
+      <h1>{{ center.name }}</h1>
+      <p class="center-card__ar">{{ center.nameAr }}</p>
+      <span class="rating">★ {{ center.averageRating | number:'1.1-1' }} ({{ center.totalReviews }} reviews)</span>
+    </div>
+    <a [routerLink]="['/centers']" class="secondary" role="button">← Back</a>
+  </div>
+
+  <p>{{ center.description }}</p>
+
+  @if (center.branches.length) {
+    <h3>Branches</h3>
+    <div class="jamalek-grid">
+      @for (b of center.branches; track b.id) {
+        <article>
+          <strong>{{ b.name }}</strong>
+          <p><small>{{ b.address }}, {{ b.city }}</small></p>
+          <p><small>📞 {{ b.phone }}</small></p>
+        </article>
+      }
+    </div>
+  }
+
+  @if (center.services.length) {
+    <h3>Services</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Duration</th><th>Price</th></tr></thead>
+      <tbody>
+        @for (s of center.services; track s.id) {
+          <tr><td>{{ s.name }}</td><td>{{ s.durationMinutes }} min</td><td>{{ s.price }} EGP</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <section class="booking-panel">
+    <h2>Book an Appointment</h2>
+
+    <div class="grid">
+      <label>Branch
+        <select [(ngModel)]="selectedBranchId" (ngModelChange)="onBranchChange()">
+          @for (b of center.branches; track b.id) {
+            <option [ngValue]="b.id">{{ b.name }}</option>
+          }
+        </select>
+      </label>
+      <label>Service
+        <select [(ngModel)]="selectedServiceId" (ngModelChange)="slots = []">
+          @for (s of center.services; track s.id) {
+            <option [ngValue]="s.id">{{ s.name }} — {{ s.price }} EGP</option>
+          }
+        </select>
+      </label>
+      <label>Staff <small>(optional)</small>
+        <select [(ngModel)]="selectedStaffId">
+          <option [ngValue]="undefined">Any available</option>
+          @for (s of staff; track s.id) {
+            <option [ngValue]="s.id">{{ s.name }} — {{ s.specialization }}</option>
+          }
+        </select>
+      </label>
+      <label>Date
+        <input type="date" [(ngModel)]="bookingDate" [min]="minDate()" />
+      </label>
+    </div>
+
+    <button (click)="loadSlots()" [attr.aria-busy]="loadingSlots">
+      {{ loadingSlots ? 'Checking...' : 'Check Availability' }}
+    </button>
+
+    @if (slots.length > 0) {
+      <h4>Available Slots</h4>
+      <div class="slot-grid">
+        @for (slot of slots; track slot.startTime) {
+          <button type="button" class="slot-btn"
+                  [class]="selectedSlot === slot.startTime ? '' : 'secondary'"
+                  (click)="selectedSlot = slot.startTime">
+            {{ slot.startTime | slice:0:5 }}
+          </button>
+        }
+      </div>
+    } @else if (!loadingSlots && selectedBranchId) {
+      <p><small>Select date and click "Check Availability"</small></p>
+    }
+
+    <label>Notes
+      <textarea [(ngModel)]="notes" rows="2" placeholder="Special requests..."></textarea>
+    </label>
+
+    @if (selectedService(); as svc) {
+      <p><strong>Total: {{ svc.price }} EGP</strong> <small>(Pay at salon)</small></p>
+    }
+
+    <button (click)="book()" [disabled]="!selectedSlot">Confirm Booking</button>
+
+    @if (message) { <p><mark>{{ message }}</mark></p> }
+    @if (error) { <p class="error">{{ error }}</p> }
+  </section>
+}

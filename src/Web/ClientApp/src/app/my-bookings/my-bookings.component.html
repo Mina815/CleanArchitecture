@@ -1,0 +1,42 @@
+<div class="page-header">
+  <div>
+    <h1>My Bookings</h1>
+    <p>Upcoming and past appointments</p>
+  </div>
+  <a [routerLink]="['/centers']" role="button">Book New</a>
+</div>
+
+@if (loading) {
+  <p><em>Loading bookings...</em></p>
+} @else if (bookings.length === 0) {
+  <article>
+    <p>You have no bookings yet.</p>
+    <a [routerLink]="['/centers']" role="button">Browse beauty centers</a>
+  </article>
+} @else {
+  <table>
+    <thead>
+      <tr><th>Salon</th><th>Service</th><th>Date</th><th>Time</th><th>Status</th><th>Amount</th><th></th></tr>
+    </thead>
+    <tbody>
+      @for (b of bookings; track b.id) {
+        <tr>
+          <td>
+            <strong>{{ b.centerName }}</strong><br>
+            <small>{{ b.branchName }}</small>
+          </td>
+          <td>{{ b.serviceName }}</td>
+          <td>{{ b.bookingDate }}</td>
+          <td>{{ b.startTime | slice:0:5 }}</td>
+          <td><span class="badge" [class]="statusClass(b.status)">{{ b.status }}</span></td>
+          <td>{{ b.totalAmount }} EGP</td>
+          <td>
+            @if (canCancel(b)) {
+              <button class="outline danger" (click)="cancel(b.id)">Cancel</button>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

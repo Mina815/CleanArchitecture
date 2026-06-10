@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from 'src/api-authorization/auth.service';
+import { JamalekAuthService } from 'src/api-authorization/jamalek-auth.service';
 
 @Component({
   standalone: false,
@@ -9,14 +9,13 @@ import { AuthService } from 'src/api-authorization/auth.service';
   styleUrls: ['./nav-menu.component.scss']
 })
 export class NavMenuComponent {
-  isAuthenticated$ = this.authService.isAuthenticated$;
+  isAuthenticated$ = this.auth.isAuthenticated$;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(public auth: JamalekAuthService, private router: Router) {}
 
   logout(event: Event): void {
     event.preventDefault();
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/login'])
-    });
+    this.auth.logout();
+    this.router.navigate(['/login']);
   }
 }
