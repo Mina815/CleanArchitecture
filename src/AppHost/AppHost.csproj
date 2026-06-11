@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>CleanArchitecture.AppHost</RootNamespace>
     <AssemblyName>CleanArchitecture.AppHost</AssemblyName>
+    <UserSecretsId>c647db43-7b05-4db0-abb6-46b479bae785</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

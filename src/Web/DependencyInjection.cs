@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Azure.Identity;
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Infrastructure.Data;
@@ -23,6 +24,9 @@ public static class DependencyInjection
             options.SuppressModelStateInvalidFilter = true);
 
         builder.Services.AddEndpointsApiExplorer();
+
+        builder.Services.ConfigureHttpJsonOptions(options =>
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
         builder.Services.AddOpenApi(options =>
         {

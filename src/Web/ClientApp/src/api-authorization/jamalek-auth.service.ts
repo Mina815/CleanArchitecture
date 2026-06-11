@@ -18,6 +18,10 @@ export class JamalekAuthService {
   private _isAuthenticated = new BehaviorSubject<boolean>(!!localStorage.getItem(TOKEN_KEY));
   isAuthenticated$ = this._isAuthenticated.asObservable();
 
+  get isAuthenticated(): boolean {
+    return this._isAuthenticated.value;
+  }
+
   constructor(private http: HttpClient) {}
 
   get token(): string | null {
