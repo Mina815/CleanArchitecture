@@ -1,3 +1,4 @@
+using CleanArchitecture.Application.Common.Exceptions;
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Security;
 using CleanArchitecture.Domain.Constants;
@@ -33,8 +34,10 @@ public class UpdateBranchCommandHandler : IRequestHandler<UpdateBranchCommand>
     public async Task Handle(UpdateBranchCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Branches.Include(b => b.Center)
-            .FirstOrDefaultAsync(b => b.Id == request.Id && b.Center.OwnerId == _user.Id, cancellationToken);
+            .FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
         Guard.Against.NotFound(request.Id, entity);
+
+        if (entity.Center.OwnerId != _user.Id) throw new ForbiddenAccessException();
 
         entity.Name = request.Name;
         entity.NameAr = request.NameAr;

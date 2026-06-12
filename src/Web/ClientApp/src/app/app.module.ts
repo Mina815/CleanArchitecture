@@ -13,6 +13,7 @@ import { CentersComponent } from './centers/centers.component';
 import { CenterDetailComponent } from './center-detail/center-detail.component';
 import { MyBookingsComponent } from './my-bookings/my-bookings.component';
 import { ProviderDashboardComponent } from './provider-dashboard/provider-dashboard.component';
+import { BranchManagementComponent } from './branch-management/branch-management.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 import { API_BASE_URL } from './web-api-client';
 import { JamalekInterceptor } from 'src/api-authorization/jamalek.interceptor';
@@ -36,6 +37,7 @@ export function getApiBaseUrl(): string {
         CenterDetailComponent,
         MyBookingsComponent,
         ProviderDashboardComponent,
+        BranchManagementComponent,
         NotificationsComponent,
         LoginComponent,
         RegisterComponent
@@ -52,6 +54,7 @@ export function getApiBaseUrl(): string {
             { path: 'my-bookings', component: MyBookingsComponent, canActivate: [AuthGuard] },
             { path: 'notifications', component: NotificationsComponent, canActivate: [AuthGuard] },
             { path: 'provider', component: ProviderDashboardComponent, canActivate: [AuthGuard] },
+            { path: 'provider/branches', component: BranchManagementComponent, canActivate: [AuthGuard] },
             { path: 'login', component: LoginComponent },
             { path: 'register', component: RegisterComponent }
         ])

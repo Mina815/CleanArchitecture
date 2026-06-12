@@ -161,3 +161,82 @@
     grid-template-columns: 1fr;
   }
 }
+
+.tab-nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  padding-bottom: 0.75rem;
+
+  button {
+    background: transparent;
+    border: 1px solid var(--pico-muted-border-color);
+    color: var(--pico-muted-color);
+    box-shadow: none;
+
+    &.active,
+    &[aria-current="true"] {
+      background: var(--jamalek-accent-soft);
+      border-color: var(--jamalek-accent);
+      color: var(--jamalek-accent);
+    }
+  }
+}
+
+.form-panel {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  background: var(--pico-card-background-color);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding-top: 0;
+  border: none;
+}
+
+.hours-table {
+  width: 100%;
+  margin: 1rem 0;
+
+  input[type="time"] {
+    margin: 0;
+    min-width: 7rem;
+  }
+
+  input[type="checkbox"] {
+    margin: 0;
+  }
+}
+
+.success-msg {
+  color: #065f46;
+  padding: 0.75rem 1rem;
+  border-radius: var(--pico-border-radius);
+  background: #d1fae5;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .success-msg {
+  color: #d1fae5;
+  background: #064e3b;
+}

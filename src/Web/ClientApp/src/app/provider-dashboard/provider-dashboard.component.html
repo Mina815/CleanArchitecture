@@ -3,7 +3,10 @@
     <h1>Provider Dashboard</h1>
     <p>Today's bookings — auto-refreshes every 30s</p>
   </div>
-  <button (click)="load()" [attr.aria-busy]="loading">Refresh</button>
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a [routerLink]="['/provider/branches']" class="secondary" role="button">Manage Branches</a>
+    <button (click)="load()" [attr.aria-busy]="loading">Refresh</button>
+  </div>
 </div>
 
 <label>Branch

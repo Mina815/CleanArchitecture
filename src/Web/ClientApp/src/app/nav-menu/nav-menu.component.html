@@ -11,7 +11,8 @@
         }
         <li><a [routerLink]="['/notifications']" [routerLinkActive]="['pico-active']">Notifications</a></li>
         @if (auth.isProvider) {
-          <li><a [routerLink]="['/provider']" [routerLinkActive]="['pico-active']">Dashboard</a></li>
+          <li><a [routerLink]="['/provider']" [routerLinkActive]="['pico-active']" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a></li>
+          <li><a [routerLink]="['/provider/branches']" [routerLinkActive]="['pico-active']">Branches</a></li>
         }
       }
     </ul>

@@ -22,9 +22,59 @@ export interface CenterDetailDto extends CenterDto {
 export interface BranchSummaryDto {
   id: number;
   name: string;
+  nameAr: string;
   address: string;
   city: string;
   phone: string;
+}
+
+export interface CreateBranchRequest {
+  centerId: number;
+  name: string;
+  nameAr: string;
+  address: string;
+  city: string;
+  district?: string;
+  latitude?: number;
+  longitude?: number;
+  phone: string;
+  whatsappNumber?: string;
+}
+
+export interface UpdateBranchRequest {
+  id: number;
+  name: string;
+  nameAr: string;
+  address: string;
+  city: string;
+  district?: string;
+  phone: string;
+  whatsappNumber?: string;
+  isActive: boolean;
+}
+
+export interface WorkingHourDto {
+  dayOfWeek: number;
+  openTime: string;
+  closeTime: string;
+  isClosed: boolean;
+}
+
+export interface CreateTimeOffRequest {
+  staffId?: number;
+  fromDate: string;
+  toDate: string;
+  fromTime?: string;
+  toTime?: string;
+  reason?: string;
+  type: number;
+}
+
+export enum TimeOffType {
+  Holiday = 0,
+  Vacation = 1,
+  Sick = 2,
+  Custom = 3
 }
 
 export interface ServiceSummaryDto {
@@ -145,5 +195,21 @@ export class JamalekApiService {
 
   markAllNotificationsRead(): Observable<void> {
     return this.http.put<void>('/api/notifications/mark-all-read', {});
+  }
+
+  createBranch(data: CreateBranchRequest): Observable<number> {
+    return this.http.post<number>('/api/branches', data);
+  }
+
+  updateBranch(id: number, data: UpdateBranchRequest): Observable<void> {
+    return this.http.put<void>(`/api/branches/${id}`, data);
+  }
+
+  setWorkingHours(branchId: number, hours: WorkingHourDto[]): Observable<void> {
+    return this.http.post<void>(`/api/branches/${branchId}/working-hours`, { hours });
+  }
+
+  createTimeOff(branchId: number, data: CreateTimeOffRequest): Observable<number> {
+    return this.http.post<number>(`/api/branches/${branchId}/time-off`, data);
   }
 }

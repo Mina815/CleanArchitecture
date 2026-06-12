@@ -1,7 +1,9 @@
+using CleanArchitecture.Application.Common.Exceptions;
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Security;
 using CleanArchitecture.Domain.Constants;
 using CleanArchitecture.Domain.Entities;
+using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Branches.Commands.SetWorkingHours;
@@ -29,22 +31,44 @@ public class SetWorkingHoursCommandHandler : IRequestHandler<SetWorkingHoursComm
     public async Task Handle(SetWorkingHoursCommand request, CancellationToken cancellationToken)
     {
         var branch = await _context.Branches.Include(b => b.Center)
-            .FirstOrDefaultAsync(b => b.Id == request.BranchId && b.Center.OwnerId == _user.Id, cancellationToken);
+            .FirstOrDefaultAsync(b => b.Id == request.BranchId, cancellationToken);
         Guard.Against.NotFound(request.BranchId, branch);
 
-        var existing = await _context.WorkingHours.Where(w => w.BranchId == request.BranchId).ToListAsync(cancellationToken);
-        _context.WorkingHours.RemoveRange(existing);
+        if (branch.Center.OwnerId != _user.Id) throw new ForbiddenAccessException();
+
+        var existing = await _context.WorkingHours
+            .Where(w => w.BranchId == request.BranchId)
+            .ToListAsync(cancellationToken);
 
         foreach (var hour in request.Hours)
         {
-            _context.WorkingHours.Add(new WorkingHour
+            if (!hour.IsClosed && hour.OpenTime >= hour.CloseTime)
             {
-                BranchId = request.BranchId,
-                DayOfWeek = hour.DayOfWeek,
-                OpenTime = hour.OpenTime,
-                CloseTime = hour.CloseTime,
-                IsClosed = hour.IsClosed
-            });
+                throw new ValidationException(new[]
+                {
+                    new ValidationFailure(nameof(hour.DayOfWeek),
+                        $"Open time must be before close time for {hour.DayOfWeek}.")
+                });
+            }
+
+            var existingHour = existing.FirstOrDefault(e => e.DayOfWeek == hour.DayOfWeek);
+            if (existingHour is not null)
+            {
+                existingHour.OpenTime = hour.OpenTime;
+                existingHour.CloseTime = hour.CloseTime;
+                existingHour.IsClosed = hour.IsClosed;
+            }
+            else
+            {
+                _context.WorkingHours.Add(new WorkingHour
+                {
+                    BranchId = request.BranchId,
+                    DayOfWeek = hour.DayOfWeek,
+                    OpenTime = hour.OpenTime,
+                    CloseTime = hour.CloseTime,
+                    IsClosed = hour.IsClosed
+                });
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);

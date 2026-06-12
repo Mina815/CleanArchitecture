@@ -1,3 +1,4 @@
+using CleanArchitecture.Application.Common.Exceptions;
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Security;
 using CleanArchitecture.Domain.Constants;
@@ -35,8 +36,10 @@ public class CreateBranchCommandHandler : IRequestHandler<CreateBranchCommand, i
     public async Task<int> Handle(CreateBranchCommand request, CancellationToken cancellationToken)
     {
         var center = await _context.BeautyCenters
-            .FirstOrDefaultAsync(c => c.Id == request.CenterId && c.OwnerId == _user.Id, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Id == request.CenterId, cancellationToken);
         Guard.Against.NotFound(request.CenterId, center);
+
+        if (center.OwnerId != _user.Id) throw new ForbiddenAccessException();
 
         var entity = new Branch
         {
