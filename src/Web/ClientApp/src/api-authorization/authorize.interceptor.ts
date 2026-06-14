@@ -11,13 +11,20 @@ export class AuthorizeInterceptor implements HttpInterceptor {
   constructor(private router: Router) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const authReq = req.clone({ withCredentials: true });
+    const token = localStorage.getItem('access_token');
+    let authReq = req;
+    if (token) {
+      authReq = req.clone({
+        setHeaders: { Authorization: `Bearer ${token}` }
+      });
+    }
     return next.handle(authReq).pipe(
       catchError(error => {
         if (error instanceof HttpErrorResponse
           && error.status === 401
-          && !error.url?.includes('/manage/info')
           && !this.router.url.startsWith('/login')) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
           this.router.navigate(['/login'], { queryParams: { returnUrl: window.location.pathname } });
         }
         return throwError(() => error);

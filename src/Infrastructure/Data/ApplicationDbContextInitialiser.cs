@@ -1,11 +1,11 @@
 ﻿using CleanArchitecture.Domain.Constants;
 using CleanArchitecture.Domain.Entities;
-using CleanArchitecture.Domain.ValueObjects;
 using CleanArchitecture.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace CleanArchitecture.Infrastructure.Data;
 
@@ -41,9 +41,14 @@ public class ApplicationDbContextInitialiser
     {
         try
         {
-            // See https://jasontaylor.dev/ef-core-database-initialisation-strategies
-            await _context.Database.EnsureDeletedAsync();
-            await _context.Database.EnsureCreatedAsync();
+            await _context.Database.MigrateAsync();
+        }
+        catch (PostgresException ex) when (ex.SqlState == "42P01")
+        {
+            _logger.LogInformation("Migrations history table not found; creating it and retrying.");
+            await _context.Database.ExecuteSqlRawAsync(
+                "CREATE TABLE IF NOT EXISTS \"__EFMigrationsHistory\" (\"MigrationId\" text NOT NULL, \"ProductVersion\" text NOT NULL);");
+            await _context.Database.MigrateAsync();
         }
         catch (Exception ex)
         {
@@ -68,42 +73,53 @@ public class ApplicationDbContextInitialiser
     public async Task TrySeedAsync()
     {
         // Default roles
-        var administratorRole = new IdentityRole(Roles.Administrator);
-
-        if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
+        var roles = new[] { Roles.Administrator, Roles.Customer, Roles.Provider };
+        foreach (var role in roles)
         {
-            await _roleManager.CreateAsync(administratorRole);
-        }
-
-        // Default users
-        var administrator = new ApplicationUser { UserName = "administrator@localhost", Email = "administrator@localhost" };
-
-        if (_userManager.Users.All(u => u.UserName != administrator.UserName))
-        {
-            await _userManager.CreateAsync(administrator, "Administrator1!");
-            if (!string.IsNullOrWhiteSpace(administratorRole.Name))
+            if (_roleManager.Roles.All(r => r.Name != role))
             {
-                await _userManager.AddToRolesAsync(administrator, new [] { administratorRole.Name });
+                await _roleManager.CreateAsync(new IdentityRole(role));
             }
         }
 
-        // Default data
-        // Seed, if necessary
-        if (!_context.TodoLists.Any())
+        // Default admin user
+        var adminUser = new ApplicationUser { UserName = "admin@jamalek.com", Email = "admin@jamalek.com", FullName = "Admin", FullNameAr = "مدير" };
+        if (_userManager.Users.All(u => u.UserName != adminUser.UserName))
         {
-            _context.TodoLists.Add(new TodoList
-            {
-                Title = "Tasks",
-                Colour = Colour.Green,
-                Items =
-                {
-                    new TodoItem { Title = "Make a todo list 📃" },
-                    new TodoItem { Title = "Check off the first item ✅" },
-                    new TodoItem { Title = "Realise you've already done two things on the list! 🤯"},
-                    new TodoItem { Title = "Reward yourself with a nice, long nap 🏆" },
-                }
-            });
+            await _userManager.CreateAsync(adminUser, "Admin123!");
+            await _userManager.AddToRoleAsync(adminUser, Roles.Administrator);
+        }
 
+        // Default provider user
+        var providerUser = new ApplicationUser { UserName = "provider@jamalek.com", Email = "provider@jamalek.com", FullName = "Beauty Center", FullNameAr = "مركز تجميل" };
+        if (_userManager.Users.All(u => u.UserName != providerUser.UserName))
+        {
+            await _userManager.CreateAsync(providerUser, "Provider123!");
+            await _userManager.AddToRoleAsync(providerUser, Roles.Provider);
+        }
+
+        // Default customer user
+        var customerUser = new ApplicationUser { UserName = "customer@jamalek.com", Email = "customer@jamalek.com", FullName = "Customer", FullNameAr = "عميل" };
+        if (_userManager.Users.All(u => u.UserName != customerUser.UserName))
+        {
+            await _userManager.CreateAsync(customerUser, "Customer123!");
+            await _userManager.AddToRoleAsync(customerUser, Roles.Customer);
+        }
+
+        // Seed a sample beauty center
+        if (!_context.BeautyCenters.Any())
+        {
+            var center = new BeautyCenter
+            {
+                OwnerId = (await _userManager.FindByNameAsync("provider@jamalek.com"))!.Id,
+                Name = "Jamalek Beauty Center",
+                NameAr = "مركز جمالك للتجميل",
+                Description = "A premium beauty center offering a wide range of services.",
+                DescriptionAr = "مركز تجميل راقي يقدم مجموعة واسعة من الخدمات.",
+                IsActive = true,
+                IsVerified = true
+            };
+            _context.BeautyCenters.Add(center);
             await _context.SaveChangesAsync();
         }
     }

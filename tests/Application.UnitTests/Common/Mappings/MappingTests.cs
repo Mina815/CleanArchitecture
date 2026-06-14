@@ -1,7 +1,10 @@
 using System.Runtime.CompilerServices;
 using AutoMapper;
+using CleanArchitecture.Application.Bookings.Queries.GetMyBookings;
+using CleanArchitecture.Application.Branches.Queries.GetCenterBranches;
+using CleanArchitecture.Application.Centers.Queries.GetCenters;
 using CleanArchitecture.Application.Common.Interfaces;
-using CleanArchitecture.Application.TodoLists.Queries.GetTodos;
+using CleanArchitecture.Application.Services.Queries.GetCenterServices;
 using CleanArchitecture.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -17,7 +20,6 @@ public class MappingTests
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        // Minimal logger factory for tests
         _loggerFactory = LoggerFactory.Create(b => b.AddDebug().SetMinimumLevel(LogLevel.Debug));
 
         _configuration = new MapperConfiguration(cfg =>
@@ -34,12 +36,13 @@ public class MappingTests
     }
 
     [Test]
-    [TestCase(typeof(TodoList), typeof(TodoListDto))]
-    [TestCase(typeof(TodoItem), typeof(TodoItemDto))]
+    [TestCase(typeof(BeautyCenter), typeof(CenterDto))]
+    [TestCase(typeof(Branch), typeof(BranchDto))]
+    [TestCase(typeof(Domain.Entities.Service), typeof(ServiceDto))]
+    [TestCase(typeof(Booking), typeof(BookingDto))]
     public void ShouldSupportMappingFromSourceToDestination(Type source, Type destination)
     {
         var instance = GetInstanceOf(source);
-
         _mapper!.Map(instance, source, destination);
     }
 
@@ -48,10 +51,8 @@ public class MappingTests
         if (type.GetConstructor(Type.EmptyTypes) != null)
             return Activator.CreateInstance(type)!;
 
-        // Type without parameterless constructor
         return RuntimeHelpers.GetUninitializedObject(type);
     }
-
 
     [OneTimeTearDown]
     public void OneTimeTearDown()

@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/artifacts/
+**/node_modules/
+**/ClientApp/dist/
+.vs/
+.vscode/
+*.user
+*.suo
+.env
+.git/
+.gitignore

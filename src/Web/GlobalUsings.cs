@@ -1,3 +1,13 @@
 global using Ardalis.GuardClauses;
 global using CleanArchitecture.Web.Infrastructure;
 global using MediatR;
+global using Microsoft.AspNetCore.Http.HttpResults;
+global using CleanArchitecture.Application.Common.Models;
+global using CleanArchitecture.Application.Auth.DTOs;
+global using CleanArchitecture.Application.Bookings.Queries.GetMyBookings;
+global using CleanArchitecture.Application.Bookings.Queries.GetAvailableSlots;
+global using CleanArchitecture.Application.Centers.Queries.GetCenters;
+global using CleanArchitecture.Application.Centers.Queries.GetCenterById;
+global using CleanArchitecture.Application.Branches.Queries.GetCenterBranches;
+global using CleanArchitecture.Application.Services.Queries.GetCenterServices;
+global using CleanArchitecture.Application.Reviews.Queries.GetCenterReviews;

@@ -3,12 +3,10 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!--#if (UsePostgreSQL)-->
-    <!-- Suppress NU1608 until Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0 is released -->
-    <WarningsNotAsErrors>NU1608</WarningsNotAsErrors>
-    <!--#endif-->
+    <WarningsNotAsErrors>NU1903;NU1902;NU1901;NU1900</WarningsNotAsErrors>
     <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <DefineConstants>$(DefineConstants);UsePostgreSQL</DefineConstants>
   </PropertyGroup>
 </Project>

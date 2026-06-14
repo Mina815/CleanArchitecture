@@ -30,7 +30,7 @@ export class RegisterComponent {
     this.passwordTouched = true;
     if (!this.emailValid || !this.passwordValid) return;
     try {
-      await firstValueFrom(this.authService.register(this.email, this.password));
+      await firstValueFrom(this.authService.register(this.email, this.password, this.email));
       await this.router.navigate(['/login']);
     } catch {
       this.error = 'Registration failed. Please try again.';
