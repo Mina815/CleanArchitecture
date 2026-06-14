@@ -1,0 +1,76 @@
+<div class="page-header">
+  <div>
+    <h1>Staff Management</h1>
+    <p>Manage staff members for your branches</p>
+  </div>
+  <button (click)="startCreate()" [disabled]="!selectedBranchId">Add Staff</button>
+</div>
+
+@if (error) {
+  <p class="error">{{ error }}</p>
+}
+@if (success) {
+  <p><mark>{{ success }}</mark></p>
+}
+
+@if (loading) {
+  <p><em>Loading...</em></p>
+} @else if (!centerId) {
+  <article><p>No center found. Create a center first to manage staff.</p></article>
+} @else if (!branches.length) {
+  <article><p>No branches found. <a [routerLink]="['/provider/branches']">Create a branch</a> first.</p></article>
+} @else {
+  <label>Branch
+    <select [(ngModel)]="selectedBranchId" (ngModelChange)="onBranchChange()">
+      @for (b of branches; track b.id) {
+        <option [ngValue]="b.id">{{ b.name }} — {{ b.city }}</option>
+      }
+    </select>
+  </label>
+
+  @if (staff.length === 0 && !showForm) {
+    <article><p>No staff members for this branch.</p></article>
+  }
+  @if (staff.length > 0) {
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Phone</th><th>Specialization</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        @for (s of staff; track s.id) {
+          <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ s.phone || '-' }}</td>
+            <td>{{ s.specialization || '-' }}</td>
+            <td><span class="badge" [class]="s.isActive ? '' : 'badge--cancelled'">{{ s.isActive ? 'Active' : 'Inactive' }}</span></td>
+            <td><button class="secondary" (click)="startEdit(s)">Edit</button></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+}
+
+@if (showForm) {
+  <div class="form-panel">
+    <h3>{{ editingStaffId ? 'Edit Staff' : 'Add Staff' }}</h3>
+    <div class="form-grid">
+      <label>Name
+        <input type="text" [(ngModel)]="form.name" required />
+      </label>
+      <label>Phone
+        <input type="text" [(ngModel)]="form.phone" />
+      </label>
+      <label>Specialization
+        <input type="text" [(ngModel)]="form.specialization" />
+      </label>
+      <label>Image URL
+        <input type="text" [(ngModel)]="form.imageUrl" />
+      </label>
+    </div>
+    <div class="form-actions">
+      <button (click)="save()" [attr.aria-busy]="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+      <button class="secondary" (click)="cancelForm()">Cancel</button>
+    </div>
+  </div>
+}

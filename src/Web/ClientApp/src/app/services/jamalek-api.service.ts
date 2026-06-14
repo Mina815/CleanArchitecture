@@ -60,6 +60,21 @@ export interface WorkingHourDto {
   isClosed: boolean;
 }
 
+export interface BranchDetailDto {
+  id: number;
+  name: string;
+  nameAr: string;
+  address: string;
+  city: string;
+  district?: string;
+  latitude?: number;
+  longitude?: number;
+  phone: string;
+  whatsappNumber?: string;
+  isActive: boolean;
+  workingHours: WorkingHourDto[];
+}
+
 export interface CreateTimeOffRequest {
   staffId?: number;
   fromDate: string;
@@ -88,6 +103,76 @@ export interface StaffMemberDto {
   id: number;
   name: string;
   specialization?: string;
+}
+
+export interface StaffDto {
+  id: number;
+  branchId: number;
+  name: string;
+  phone?: string;
+  imageUrl?: string;
+  specialization?: string;
+  isActive: boolean;
+}
+
+export interface CreateStaffRequest {
+  branchId: number;
+  name: string;
+  phone?: string;
+  imageUrl?: string;
+  specialization?: string;
+}
+
+export interface UpdateStaffRequest {
+  id: number;
+  name: string;
+  phone?: string;
+  specialization?: string;
+  isActive: boolean;
+}
+
+export interface CreateServiceRequest {
+  centerId: number;
+  categoryId: number;
+  name: string;
+  nameAr: string;
+  description?: string;
+  descriptionAr?: string;
+  price: number;
+  durationMinutes: number;
+  imageUrl?: string;
+  displayOrder: number;
+}
+
+export interface UpdateServiceRequest {
+  id: number;
+  name: string;
+  nameAr: string;
+  price: number;
+  durationMinutes: number;
+  isActive: boolean;
+}
+
+export interface ServiceDto {
+  id: number;
+  categoryId: number;
+  name: string;
+  nameAr: string;
+  description?: string;
+  descriptionAr?: string;
+  price: number;
+  durationMinutes: number;
+  imageUrl?: string;
+  displayOrder: number;
+  isActive: boolean;
+  categoryName?: string;
+}
+
+export interface CategoryDto {
+  id: number;
+  name: string;
+  nameAr: string;
+  iconUrl?: string;
 }
 
 export interface BookingDto {
@@ -181,8 +266,8 @@ export class JamalekApiService {
     return this.http.put<void>(`/api/bookings/${id}/complete`, {});
   }
 
-  getBranchStaff(branchId: number): Observable<StaffMemberDto[]> {
-    return this.http.get<StaffMemberDto[]>(`/api/staff/branch/${branchId}`);
+  getBranchStaff(branchId: number): Observable<StaffDto[]> {
+    return this.http.get<StaffDto[]>(`/api/staff/branch/${branchId}`);
   }
 
   getNotifications(unreadOnly = false): Observable<NotificationDto[]> {
@@ -211,5 +296,39 @@ export class JamalekApiService {
 
   createTimeOff(branchId: number, data: CreateTimeOffRequest): Observable<number> {
     return this.http.post<number>(`/api/branches/${branchId}/time-off`, data);
+  }
+
+  getCenterBranches(centerId: number): Observable<BranchDetailDto[]> {
+    return this.http.get<BranchDetailDto[]>(`/api/centers/${centerId}/branches`);
+  }
+
+  getCenterServices(centerId: number, categoryId?: number): Observable<ServiceDto[]> {
+    let params = new HttpParams();
+    if (categoryId) params = params.set('categoryId', categoryId);
+    return this.http.get<ServiceDto[]>(`/api/centers/${centerId}/services`, { params });
+  }
+
+  getServiceCategories(): Observable<CategoryDto[]> {
+    return this.http.get<CategoryDto[]>('/api/services/categories');
+  }
+
+  createStaff(data: CreateStaffRequest): Observable<number> {
+    return this.http.post<number>('/api/staff', data);
+  }
+
+  updateStaff(id: number, data: UpdateStaffRequest): Observable<void> {
+    return this.http.put<void>(`/api/staff/${id}`, data);
+  }
+
+  createService(data: CreateServiceRequest): Observable<number> {
+    return this.http.post<number>('/api/services', data);
+  }
+
+  updateService(id: number, data: UpdateServiceRequest): Observable<void> {
+    return this.http.put<void>(`/api/services/${id}`, data);
+  }
+
+  deleteService(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/services/${id}`);
   }
 }

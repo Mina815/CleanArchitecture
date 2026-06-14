@@ -1,4 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Subject } from 'rxjs';
+import { switchMap, takeUntil } from 'rxjs/operators';
 import { BookingDto, BranchSummaryDto, JamalekApiService } from '../services/jamalek-api.service';
 
 @Component({
@@ -11,34 +13,84 @@ export class ProviderDashboardComponent implements OnInit, OnDestroy {
   branchId = 0;
   bookings: BookingDto[] = [];
   loading = false;
+  error = '';
+
+  private destroy$ = new Subject<void>();
   private refreshTimer?: ReturnType<typeof setInterval>;
 
-  constructor(private api: JamalekApiService) {}
+  constructor(private api: JamalekApiService, private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
-    this.api.getCenters().subscribe(centers => {
-      if (centers.length > 0) {
-        this.api.getCenter(centers[0].id).subscribe(detail => {
-          this.branches = detail.branches;
-          this.branchId = detail.branches[0]?.id ?? 0;
-          this.load();
-        });
-      }
-    });
-    this.refreshTimer = setInterval(() => this.load(), 30000);
+    this.loadCenter();
+    this.refreshTimer = setInterval(() => this.loadBookings(), 30000);
   }
 
   ngOnDestroy(): void {
     if (this.refreshTimer) clearInterval(this.refreshTimer);
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadCenter(): void {
+    this.loading = true;
+    this.error = '';
+    this.cdr.detectChanges();
+
+    this.api.getCenters().pipe(
+      switchMap(centers => {
+        if (!centers.length) {
+          throw new Error('NO_CENTER');
+        }
+        return this.api.getCenter(centers[0].id);
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: detail => {
+        this.branches = detail.branches;
+        this.branchId = detail.branches[0]?.id ?? 0;
+        this.loading = false;
+        this.cdr.detectChanges();
+        if (this.branchId) {
+          this.loadBookings();
+        }
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err?.message === 'NO_CENTER'
+          ? 'No center found. Create a center first.'
+          : 'Failed to load center details.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadBookings(): void {
+    if (!this.branchId) {
+      this.loadCenter();
+      return;
+    }
+    this.loading = true;
+    this.error = '';
+    this.cdr.detectChanges();
+
+    this.api.getBranchTodayBookings(this.branchId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: data => {
+        this.bookings = data;
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loading = false;
+        this.error = 'Failed to load bookings.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   load(): void {
-    if (!this.branchId) return;
-    this.loading = true;
-    this.api.getBranchTodayBookings(this.branchId).subscribe({
-      next: data => { this.bookings = data; this.loading = false; },
-      error: () => this.loading = false
-    });
+    this.loadBookings();
   }
 
   get pendingCount(): number {
@@ -50,11 +102,11 @@ export class ProviderDashboardComponent implements OnInit, OnDestroy {
   }
 
   confirm(id: number): void {
-    this.api.confirmBooking(id).subscribe(() => this.load());
+    this.api.confirmBooking(id).subscribe(() => this.loadBookings());
   }
 
   complete(id: number): void {
-    this.api.completeBooking(id).subscribe(() => this.load());
+    this.api.completeBooking(id).subscribe(() => this.loadBookings());
   }
 
   statusClass(status: string): string {

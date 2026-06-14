@@ -14,6 +14,8 @@ import { CenterDetailComponent } from './center-detail/center-detail.component';
 import { MyBookingsComponent } from './my-bookings/my-bookings.component';
 import { ProviderDashboardComponent } from './provider-dashboard/provider-dashboard.component';
 import { BranchManagementComponent } from './branch-management/branch-management.component';
+import { StaffManagementComponent } from './staff-management/staff-management.component';
+import { ServicesManagementComponent } from './services-management/services-management.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 import { API_BASE_URL } from './web-api-client';
 import { JamalekInterceptor } from 'src/api-authorization/jamalek.interceptor';
@@ -38,6 +40,8 @@ export function getApiBaseUrl(): string {
         MyBookingsComponent,
         ProviderDashboardComponent,
         BranchManagementComponent,
+        StaffManagementComponent,
+        ServicesManagementComponent,
         NotificationsComponent,
         LoginComponent,
         RegisterComponent
@@ -55,6 +59,8 @@ export function getApiBaseUrl(): string {
             { path: 'notifications', component: NotificationsComponent, canActivate: [AuthGuard] },
             { path: 'provider', component: ProviderDashboardComponent, canActivate: [AuthGuard] },
             { path: 'provider/branches', component: BranchManagementComponent, canActivate: [AuthGuard] },
+            { path: 'provider/staff', component: StaffManagementComponent, canActivate: [AuthGuard] },
+            { path: 'provider/services', component: ServicesManagementComponent, canActivate: [AuthGuard] },
             { path: 'login', component: LoginComponent },
             { path: 'register', component: RegisterComponent }
         ])

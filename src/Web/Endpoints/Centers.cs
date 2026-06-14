@@ -1,7 +1,9 @@
 using CleanArchitecture.Application.Centers;
 using CleanArchitecture.Application.Centers.Commands.CreateCenter;
 using CleanArchitecture.Application.Centers.Commands.UpdateCenter;
+using CleanArchitecture.Application.Centers.Queries.GetCenterBranches;
 using CleanArchitecture.Application.Centers.Queries.GetCenterById;
+using CleanArchitecture.Application.Centers.Queries.GetCenterServices;
 using CleanArchitecture.Application.Centers.Queries.GetCenters;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -30,17 +32,11 @@ public class Centers : IEndpointGroup
         return center is null ? TypedResults.NotFound() : TypedResults.Ok(center);
     }
 
-    public static async Task<Results<Ok<List<BranchSummaryDto>>, NotFound>> GetCenterBranches(ISender sender, int id)
-    {
-        var center = await sender.Send(new GetCenterByIdQuery(id));
-        return center is null ? TypedResults.NotFound() : TypedResults.Ok(center.Branches);
-    }
+    public static async Task<Ok<List<BranchDetailDto>>> GetCenterBranches(ISender sender, int id)
+        => TypedResults.Ok(await sender.Send(new GetCenterBranchesQuery(id)));
 
-    public static async Task<Results<Ok<List<ServiceSummaryDto>>, NotFound>> GetCenterServices(ISender sender, int id)
-    {
-        var center = await sender.Send(new GetCenterByIdQuery(id));
-        return center is null ? TypedResults.NotFound() : TypedResults.Ok(center.Services);
-    }
+    public static async Task<Ok<List<ServiceDetailDto>>> GetCenterServices(ISender sender, int id, int? categoryId)
+        => TypedResults.Ok(await sender.Send(new GetCenterServicesQuery(id, categoryId)));
 
     public static async Task<Created<int>> CreateCenter(ISender sender, CreateCenterCommand command)
     {

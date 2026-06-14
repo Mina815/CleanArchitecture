@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CenterDto, JamalekApiService } from '../services/jamalek-api.service';
 
 @Component({
@@ -12,8 +12,9 @@ export class CentersComponent implements OnInit {
   search = '';
   loading = true;
   error = '';
+  private loadingTimeout?: ReturnType<typeof setTimeout>;
 
-  constructor(private api: JamalekApiService) {}
+  constructor(private api: JamalekApiService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.load();
@@ -21,9 +22,12 @@ export class CentersComponent implements OnInit {
 
   load(): void {
     this.loading = true;
+    this.error = '';
+    this.cdr.detectChanges();
+    this.loadingTimeout = setTimeout(() => { this.loading = false; this.error = 'Server not responding. Try again.'; this.cdr.detectChanges(); }, 15000);
     this.api.getCenters(this.city || undefined, this.search || undefined).subscribe({
-      next: data => { this.centers = data; this.loading = false; },
-      error: () => { this.error = 'Failed to load centers.'; this.loading = false; }
+      next: data => { clearTimeout(this.loadingTimeout); this.centers = data; this.loading = false; this.cdr.detectChanges(); },
+      error: () => { clearTimeout(this.loadingTimeout); this.error = 'Failed to load centers.'; this.loading = false; this.cdr.detectChanges(); }
     });
   }
 }

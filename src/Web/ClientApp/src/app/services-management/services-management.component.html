@@ -1,0 +1,91 @@
+<div class="page-header">
+  <div>
+    <h1>Services Management</h1>
+    <p>Manage services offered at your center</p>
+  </div>
+  <button (click)="startCreate()" [disabled]="!centerId">Add Service</button>
+</div>
+
+@if (error) {
+  <p class="error">{{ error }}</p>
+}
+@if (success) {
+  <p><mark>{{ success }}</mark></p>
+}
+
+@if (loading) {
+  <p><em>Loading...</em></p>
+} @else if (!centerId) {
+  <article><p>No center found. Create a center first to manage services.</p></article>
+} @else {
+  @if (services.length === 0 && !showForm) {
+    <article><p>No services yet. Add your first service above.</p></article>
+  }
+  @if (services.length > 0) {
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Category</th><th>Price</th><th>Duration</th><th>Order</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        @for (s of services; track s.id) {
+          <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ getCategoryName(s.categoryId) }}</td>
+            <td>{{ s.price }} EGP</td>
+            <td>{{ s.durationMinutes }} min</td>
+            <td>{{ s.displayOrder }}</td>
+            <td><span class="badge" [class]="s.isActive ? '' : 'badge--cancelled'">{{ s.isActive ? 'Active' : 'Inactive' }}</span></td>
+            <td style="display:flex; gap:0.35rem;">
+              <button class="secondary" (click)="startEdit(s)">Edit</button>
+              <button class="danger" (click)="deleteService(s.id)">Delete</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+}
+
+@if (showForm) {
+  <div class="form-panel">
+    <h3>{{ editingServiceId ? 'Edit Service' : 'Add Service' }}</h3>
+    <div class="form-grid">
+      <label>Name
+        <input type="text" [(ngModel)]="form.name" required />
+      </label>
+      <label>Name (Arabic)
+        <input type="text" [(ngModel)]="form.nameAr" required />
+      </label>
+      <label>Category
+        <select [(ngModel)]="form.categoryId" required>
+          <option [ngValue]="0" disabled>Select category</option>
+          @for (c of categories; track c.id) {
+            <option [ngValue]="c.id">{{ c.name }} / {{ c.nameAr }}</option>
+          }
+        </select>
+      </label>
+      <label>Price (EGP)
+        <input type="number" step="0.01" [(ngModel)]="form.price" />
+      </label>
+      <label>Duration (minutes)
+        <input type="number" [(ngModel)]="form.durationMinutes" />
+      </label>
+      <label>Display Order
+        <input type="number" [(ngModel)]="form.displayOrder" />
+      </label>
+      <label>Image URL
+        <input type="text" [(ngModel)]="form.imageUrl" />
+      </label>
+      <label>Description
+        <textarea [(ngModel)]="form.description" rows="2"></textarea>
+      </label>
+      <label>Description (Arabic)
+        <textarea [(ngModel)]="form.descriptionAr" rows="2"></textarea>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button (click)="save()" [attr.aria-busy]="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+      <button class="secondary" (click)="cancelForm()">Cancel</button>
+    </div>
+  </div>
+}

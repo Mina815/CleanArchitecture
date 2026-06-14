@@ -1,7 +1,11 @@
-@if (error && !center) {
+@if (error) {
   <p class="error">{{ error }}</p>
-} @else if (!center) {
+}
+
+@if (loading) {
   <p><em>Loading...</em></p>
+} @else if (!center) {
+  <article><p>Center not found.</p></article>
 } @else {
   <div class="page-header">
     <div>

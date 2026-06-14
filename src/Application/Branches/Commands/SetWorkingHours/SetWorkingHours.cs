@@ -44,7 +44,7 @@ public class SetWorkingHoursCommandHandler : IRequestHandler<SetWorkingHoursComm
         {
             if (!hour.IsClosed && hour.OpenTime >= hour.CloseTime)
             {
-                throw new ValidationException(new[]
+                throw new Common.Exceptions.ValidationException(new[]
                 {
                     new ValidationFailure(nameof(hour.DayOfWeek),
                         $"Open time must be before close time for {hour.DayOfWeek}.")

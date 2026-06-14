@@ -6,6 +6,10 @@
   <a [routerLink]="['/centers']" role="button">Book New</a>
 </div>
 
+@if (error) {
+  <p class="error">{{ error }}</p>
+}
+
 @if (loading) {
   <p><em>Loading bookings...</em></p>
 } @else if (bookings.length === 0) {

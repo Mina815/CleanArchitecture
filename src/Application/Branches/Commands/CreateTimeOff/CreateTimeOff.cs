@@ -50,7 +50,7 @@ public class CreateTimeOffCommandHandler : IRequestHandler<CreateTimeOffCommand,
 
         if (request.FromDate > request.ToDate)
         {
-            throw new ValidationException(new[]
+            throw new Common.Exceptions.ValidationException(new[]
             {
                 new ValidationFailure(nameof(request.ToDate), "To date must be on or after from date.")
             });
@@ -60,7 +60,7 @@ public class CreateTimeOffCommandHandler : IRequestHandler<CreateTimeOffCommand,
         {
             if (request.FromTime is null || request.ToTime is null)
             {
-                throw new ValidationException(new[]
+                throw new Common.Exceptions.ValidationException(new[]
                 {
                     new ValidationFailure(nameof(request.FromTime),
                         "From time and to time are required when the time-off is on a single day.")
@@ -69,7 +69,7 @@ public class CreateTimeOffCommandHandler : IRequestHandler<CreateTimeOffCommand,
 
             if (request.FromTime >= request.ToTime)
             {
-                throw new ValidationException(new[]
+                throw new Common.Exceptions.ValidationException(new[]
                 {
                     new ValidationFailure(nameof(request.ToTime),
                         "To time must be after from time on the same day.")

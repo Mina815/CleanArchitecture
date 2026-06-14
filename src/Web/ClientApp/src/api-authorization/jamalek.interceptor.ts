@@ -12,6 +12,6 @@ export class JamalekInterceptor implements HttpInterceptor {
     if (token && req.url.startsWith('/api/')) {
       req = req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
     }
-    return next.handle(req.clone({ withCredentials: true }));
+    return next.handle(req);
   }
 }

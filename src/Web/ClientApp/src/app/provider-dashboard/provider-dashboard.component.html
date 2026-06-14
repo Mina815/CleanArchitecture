@@ -23,8 +23,10 @@
   <article><strong>{{ confirmedCount }}</strong><small>Confirmed</small></article>
 </div>
 
-@if (loading && bookings.length === 0) {
+@if (loading) {
   <p><em>Loading...</em></p>
+} @else if (!branches.length) {
+  <article><p>No branches found. <a [routerLink]="['/provider/branches']">Create a branch</a> first.</p></article>
 } @else if (bookings.length === 0) {
   <article><p>No bookings scheduled for today at this branch.</p></article>
 } @else {

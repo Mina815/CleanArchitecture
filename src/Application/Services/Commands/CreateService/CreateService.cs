@@ -38,6 +38,10 @@ public class CreateServiceCommandHandler : IRequestHandler<CreateServiceCommand,
             .FirstOrDefaultAsync(c => c.Id == request.CenterId && c.OwnerId == _user.Id, cancellationToken);
         Guard.Against.NotFound(request.CenterId, center);
 
+        var category = await _context.ServiceCategories
+            .FirstOrDefaultAsync(c => c.Id == request.CategoryId && c.IsActive, cancellationToken);
+        Guard.Against.NotFound(request.CategoryId, category);
+
         var entity = new CenterService
         {
             CenterId = request.CenterId,

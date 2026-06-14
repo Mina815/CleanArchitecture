@@ -13,6 +13,8 @@
         @if (auth.isProvider) {
           <li><a [routerLink]="['/provider']" [routerLinkActive]="['pico-active']" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a></li>
           <li><a [routerLink]="['/provider/branches']" [routerLinkActive]="['pico-active']">Branches</a></li>
+          <li><a [routerLink]="['/provider/staff']" [routerLinkActive]="['pico-active']">Staff</a></li>
+          <li><a [routerLink]="['/provider/services']" [routerLinkActive]="['pico-active']">Services</a></li>
         }
       }
     </ul>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { BookingDto, JamalekApiService } from '../services/jamalek-api.service';
 
 @Component({
@@ -9,8 +9,10 @@ import { BookingDto, JamalekApiService } from '../services/jamalek-api.service';
 export class MyBookingsComponent implements OnInit {
   bookings: BookingDto[] = [];
   loading = true;
+  error = '';
+  private loadingTimeout?: ReturnType<typeof setTimeout>;
 
-  constructor(private api: JamalekApiService) {}
+  constructor(private api: JamalekApiService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.load();
@@ -18,9 +20,12 @@ export class MyBookingsComponent implements OnInit {
 
   load(): void {
     this.loading = true;
+    this.error = '';
+    this.cdr.detectChanges();
+    this.loadingTimeout = setTimeout(() => { this.loading = false; this.error = 'Server not responding. Try again.'; this.cdr.detectChanges(); }, 15000);
     this.api.getMyBookings().subscribe({
-      next: data => { this.bookings = data; this.loading = false; },
-      error: () => this.loading = false
+      next: data => { clearTimeout(this.loadingTimeout); this.bookings = data; this.loading = false; this.cdr.detectChanges(); },
+      error: () => { clearTimeout(this.loadingTimeout); this.loading = false; this.error = 'Failed to load bookings.'; this.cdr.detectChanges(); }
     });
   }
 
