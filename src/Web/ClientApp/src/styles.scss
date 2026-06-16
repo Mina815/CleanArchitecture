@@ -100,6 +100,12 @@ app-root > main:has(> app-login, > app-register) {
   }
 }
 
+// ── Active nav link ──────────────────────────────────────────────────────────
+.pico-active {
+  color: var(--pico-primary) !important;
+  font-weight: 600;
+}
+
 // ── Nav separator ─────────────────────────────────────────────────────────────
 .nav-separator {
   width: 1px;

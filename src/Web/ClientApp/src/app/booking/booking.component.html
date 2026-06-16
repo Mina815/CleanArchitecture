@@ -1,0 +1,192 @@
+<section class="booking-wizard">
+  <header>
+    <hgroup>
+      <h1>Book Appointment</h1>
+      @if (center) {
+        <p>{{ center.name }} — {{ center.nameAr }}</p>
+      }
+    </hgroup>
+
+    <nav class="step-indicator">
+      @for (step of [1,2,3,4]; track step) {
+        @if (step > 1) { <span class="step-line" [class.active]="currentStep >= step"></span> }
+        <button class="step-circle" [class.active]="currentStep >= step" [class.current]="currentStep === step" disabled>
+          @if (currentStep > step) {
+            <lucide-icon name="check-circle" [size]="18" [strokeWidth]="2"></lucide-icon>
+          } @else {
+            <span>{{ step }}</span>
+          }
+        </button>
+      }
+    </nav>
+  </header>
+
+  @if (error) {
+    <article class="error-message">
+      <p>{{ error }}</p>
+    </article>
+  }
+
+  @if (loading && currentStep < 4) {
+    <section class="loading-state">
+      <lucide-icon name="loader" [size]="32" [strokeWidth]="2" class="spinner"></lucide-icon>
+      <p>Loading...</p>
+    </section>
+  }
+
+  @if (!loading) {
+    @if (currentStep === 1) {
+      <section class="step-content">
+        <h2>Select Branch</h2>
+        <div class="grid-2">
+          @for (branch of branches; track branch.id) {
+            <article class="select-card" [class.selected]="selectedBranch?.id === branch.id" (click)="selectBranch(branch)">
+              <header>
+                <h3>{{ branch.name }}</h3>
+                @if (branch.nameAr) { <small>{{ branch.nameAr }}</small> }
+              </header>
+              <p><lucide-icon name="map-pin" [size]="14" [strokeWidth]="2"></lucide-icon> {{ branch.address }}{{ branch.city ? ', ' + branch.city : '' }}</p>
+              @if (branch.phone) {
+                <p><lucide-icon name="clock" [size]="14" [strokeWidth]="2"></lucide-icon> {{ branch.phone }}</p>
+              }
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (currentStep === 2) {
+      <section class="step-content">
+        <h2>Select Service</h2>
+        <div class="grid-2">
+          @for (service of services; track service.id) {
+            <article class="select-card" [class.selected]="selectedService?.id === service.id" (click)="selectService(service)">
+              <header>
+                <h3>{{ service.name }}</h3>
+                @if (service.nameAr) { <small>{{ service.nameAr }}</small> }
+              </header>
+              <div class="service-details">
+                <span class="price">{{ service.price | number }} EGP</span>
+                <span class="duration">{{ service.durationMinutes }} min</span>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (currentStep === 3) {
+      <section class="step-content">
+        <h2>Select Date & Time</h2>
+
+        <div class="date-picker">
+          @for (d of getAvailableDates(); track d.date) {
+            <button class="date-card" [class.selected]="selectedDate === d.date" (click)="selectDate(d.date)">
+              <span class="day-name">{{ d.dayName }}</span>
+              <span class="day-number">{{ d.dayNumber }}</span>
+              <span class="month">{{ d.month }}</span>
+            </button>
+          }
+        </div>
+
+        @if (loading) {
+          <div class="loading-state">
+            <lucide-icon name="loader" [size]="24" [strokeWidth]="2" class="spinner"></lucide-icon>
+            <p>Loading available times...</p>
+          </div>
+        } @else {
+          <div class="time-slots">
+            @if (timeSlots.length === 0) {
+              <p class="no-slots">No available time slots for this date.</p>
+            }
+            @for (slot of timeSlots; track slot.startTime) {
+              <button class="time-slot" [class.selected]="selectedTime === slot.startTime"
+                [class.available]="slot.isAvailable" [disabled]="!slot.isAvailable" (click)="slot.isAvailable && selectTime(slot)">
+                {{ slot.startTime }}
+              </button>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    @if (currentStep === 4) {
+      <section class="step-content">
+        <h2>Confirm Booking</h2>
+        <article class="summary-card">
+          <div class="summary-row">
+            <lucide-icon name="map-pin" [size]="18" [strokeWidth]="2"></lucide-icon>
+            <div>
+              <small>Center</small>
+              <p>{{ center?.name }}</p>
+            </div>
+          </div>
+          <div class="summary-row">
+            <lucide-icon name="map-pin" [size]="18" [strokeWidth]="2"></lucide-icon>
+            <div>
+              <small>Branch</small>
+              <p>{{ selectedBranch?.name }} — {{ selectedBranch?.address }}</p>
+            </div>
+          </div>
+          <div class="summary-row">
+            <lucide-icon name="sparkles" [size]="18" [strokeWidth]="2"></lucide-icon>
+            <div>
+              <small>Service</small>
+              <p>{{ selectedService?.name }} ({{ selectedService?.durationMinutes }} min)</p>
+            </div>
+          </div>
+          <div class="summary-row">
+            <lucide-icon name="calendar" [size]="18" [strokeWidth]="2"></lucide-icon>
+            <div>
+              <small>Date</small>
+              <p>{{ selectedDate }}</p>
+            </div>
+          </div>
+          <div class="summary-row">
+            <lucide-icon name="clock" [size]="18" [strokeWidth]="2"></lucide-icon>
+            <div>
+              <small>Time</small>
+              <p>{{ selectedTime }}</p>
+            </div>
+          </div>
+          <div class="summary-row total">
+            <lucide-icon name="credit-card" [size]="18" [strokeWidth]="2"></lucide-icon>
+            <div>
+              <small>Total</small>
+              <p class="price">{{ selectedService?.price | number }} EGP</p>
+            </div>
+          </div>
+        </article>
+
+        <article>
+          <label for="notes">Notes (optional)</label>
+          <textarea id="notes" [(ngModel)]="customerNotes" rows="3" placeholder="Any special requests or notes..."></textarea>
+        </article>
+
+        @if (submitting) {
+          <button class="confirm-btn" disabled>
+            <lucide-icon name="loader" [size]="20" [strokeWidth]="2" class="spinner"></lucide-icon>
+            Submitting...
+          </button>
+        } @else {
+          <button class="confirm-btn" (click)="confirmBooking()">
+            <lucide-icon name="check-circle" [size]="20" [strokeWidth]="2"></lucide-icon>
+            Confirm Booking
+          </button>
+        }
+      </section>
+    }
+
+    <footer class="nav-footer">
+      @if (currentStep > 1) {
+        <button class="outline secondary" (click)="back()">
+          <lucide-icon name="arrow-left" [size]="18" [strokeWidth]="2"></lucide-icon>
+          Back
+        </button>
+      }
+      @if (currentStep < 4) {
+        <span></span>
+      }
+    </footer>
+  }
+</section>

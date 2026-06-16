@@ -11,14 +11,18 @@ const MIN_PASSWORD_LENGTH = 6;
   templateUrl: './register.component.html'
 })
 export class RegisterComponent {
+  name = '';
   email = '';
   password = '';
+  phone = '';
+  nameTouched = false;
   emailTouched = false;
   passwordTouched = false;
   error = '';
 
   readonly minPasswordLength = MIN_PASSWORD_LENGTH;
 
+  get nameValid() { return this.name.trim().length > 0; }
   get emailValid() { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email); }
   get passwordValid() { return this.password.length >= MIN_PASSWORD_LENGTH; }
 
@@ -26,11 +30,12 @@ export class RegisterComponent {
 
   async register() {
     this.error = '';
+    this.nameTouched = true;
     this.emailTouched = true;
     this.passwordTouched = true;
-    if (!this.emailValid || !this.passwordValid) return;
+    if (!this.nameValid || !this.emailValid || !this.passwordValid) return;
     try {
-      await firstValueFrom(this.authService.register(this.email, this.password, this.email));
+      await firstValueFrom(this.authService.register(this.email, this.password, this.name, this.phone || undefined));
       await this.router.navigate(['/login']);
     } catch {
       this.error = 'Registration failed. Please try again.';

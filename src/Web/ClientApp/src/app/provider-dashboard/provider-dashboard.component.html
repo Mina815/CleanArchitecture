@@ -1,0 +1,114 @@
+<section>
+  <header style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+    <h1 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+      <lucide-icon name="bar-chart-3" style="width: 1.75rem; height: 1.75rem;"></lucide-icon>
+      لوحة التحكم
+    </h1>
+    @if (selectedBranchId) {
+      <button class="secondary" style="margin-inline-start: auto;" (click)="refresh()">
+        <lucide-icon name="loader" style="width: 1rem; height: 1rem;"></lucide-icon>
+        تحديث
+      </button>
+    }
+  </header>
+
+  <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+    <select style="flex: 1; min-width: 200px;" [value]="selectedCenterId ?? ''" (change)="selectCenter(+$any($event.target).value)">
+      <option value="" disabled>اختر المركز</option>
+      @for (center of centers; track center.id) {
+        <option [value]="center.id">{{ center.name || center.nameAr }}</option>
+      }
+    </select>
+    <select style="flex: 1; min-width: 200px;" [disabled]="!selectedCenterId" [value]="selectedBranchId ?? ''" (change)="selectBranch(+$any($event.target).value)">
+      <option value="" disabled>اختر الفرع</option>
+      @for (branch of branches; track branch.id) {
+        <option [value]="branch.id">{{ branch.name || branch.nameAr }}</option>
+      }
+    </select>
+  </div>
+
+  @if (selectedBranchId) {
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+      <article style="padding: 0.75rem; text-align: center;">
+        <lucide-icon name="calendar" style="width: 1.5rem; height: 1.5rem; opacity: 0.5;"></lucide-icon>
+        <div><strong style="font-size: 1.5rem;">{{ stats.total }}</strong></div>
+        <small style="opacity: 0.6;">إجمالي اليوم</small>
+      </article>
+      <article style="padding: 0.75rem; text-align: center;">
+        <lucide-icon name="check-circle" style="width: 1.5rem; height: 1.5rem; color: var(--pico-primary);"></lucide-icon>
+        <div><strong style="font-size: 1.5rem;">{{ stats.confirmed }}</strong></div>
+        <small style="opacity: 0.6;">مؤكد</small>
+      </article>
+      <article style="padding: 0.75rem; text-align: center;">
+        <lucide-icon name="users" style="width: 1.5rem; height: 1.5rem; opacity: 0.5;"></lucide-icon>
+        <div><strong style="font-size: 1.5rem;">{{ stats.inProgress + stats.pending }}</strong></div>
+        <small style="opacity: 0.6;">قيد التنفيذ</small>
+      </article>
+      <article style="padding: 0.75rem; text-align: center;">
+        <lucide-icon name="check-circle" style="width: 1.5rem; height: 1.5rem; color: #22c55e;"></lucide-icon>
+        <div><strong style="font-size: 1.5rem;">{{ stats.completed }}</strong></div>
+        <small style="opacity: 0.6;">مكتمل</small>
+      </article>
+      <article style="padding: 0.75rem; text-align: center;">
+        <lucide-icon name="x-circle" style="width: 1.5rem; height: 1.5rem; color: var(--pico-del-color);"></lucide-icon>
+        <div><strong style="font-size: 1.5rem;">{{ stats.cancelled }}</strong></div>
+        <small style="opacity: 0.6;">ملغي</small>
+      </article>
+    </div>
+
+    <hgroup style="margin-bottom: 1rem;">
+      <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+        <lucide-icon name="eye" style="width: 1.25rem; height: 1.25rem;"></lucide-icon>
+        حجوزات اليوم
+      </h2>
+    </hgroup>
+
+    @if (loading) {
+      <article style="text-align: center; padding: 3rem 0;">
+        <lucide-icon name="loader" class="spinner" style="width: 2rem; height: 2rem;"></lucide-icon>
+        <p style="margin-top: 0.5rem;">جاري التحميل...</p>
+      </article>
+    } @else if (todayBookings.length === 0) {
+      <article style="text-align: center; padding: 3rem 0;">
+        <lucide-icon name="calendar" style="width: 3rem; height: 3rem; opacity: 0.3;"></lucide-icon>
+        <hgroup>
+          <h3>لا توجد حجوزات اليوم</h3>
+          <p>لا توجد حجوزات لهذا الفرع اليوم</p>
+        </hgroup>
+      </article>
+    } @else {
+      <figure>
+        <table>
+          <thead>
+            <tr>
+              <th>الوقت</th>
+              <th>العميل</th>
+              <th>الخدمة</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (booking of todayBookings; track booking.id) {
+              <tr>
+                <td>{{ booking.startTime }} - {{ booking.endTime }}</td>
+                <td>{{ booking['customerName'] || booking.serviceName }}</td>
+                <td>{{ booking.serviceName }}</td>
+                <td>
+                  <span class="status-badge {{ getStatusClass(booking.status) }}">{{ getStatusLabel(booking.status) }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </figure>
+    }
+  } @else {
+    <article style="text-align: center; padding: 3rem 0;">
+      <lucide-icon name="bar-chart-3" style="width: 3rem; height: 3rem; opacity: 0.3;"></lucide-icon>
+      <hgroup>
+        <h3>اختر فرعًا</h3>
+        <p>يرجى اختيار المركز والفرع لعرض الحجوزات</p>
+      </hgroup>
+    </article>
+  }
+</section>

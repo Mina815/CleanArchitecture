@@ -4,10 +4,10 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
 {
     public RegisterCommandValidator()
     {
-        RuleFor(v => v.Phone)
+        RuleFor(v => v.Email)
             .NotEmpty()
-            .Matches(@"^01[0-9]{9}$")
-            .WithMessage("Phone must be a valid Egyptian phone number (e.g. 01012345678).");
+            .EmailAddress()
+            .WithMessage("A valid email is required.");
 
         RuleFor(v => v.Password)
             .NotEmpty()

@@ -1,13 +1,14 @@
 <header>
   <nav>
     <ul>
-      <li><a class="nav-brand" [routerLink]="['/']">Clean Architecture</a></li>
+      <li><a class="nav-brand" [routerLink]="['/']">جمالك Jamalek</a></li>
     </ul>
     <ul>
-      <li><a [routerLink]="['/']" [routerLinkActive]="['pico-active']" [routerLinkActiveOptions]="{ exact: true }">Home</a></li>
-      <li><a [routerLink]="['/counter']" [routerLinkActive]="['pico-active']">Counter</a></li>
-      <li><a [routerLink]="['/weather']" [routerLinkActive]="['pico-active']">Weather</a></li>
-      <li><a [routerLink]="['/todo']" [routerLinkActive]="['pico-active']">Tasks</a></li>
+      <li><a [routerLink]="['/']" [routerLinkActive]="['pico-active']" [routerLinkActiveOptions]="{ exact: true }">Browse Centers</a></li>
+      @if (isAuthenticated$ | async) {
+        <li><a [routerLink]="['/my-bookings']" [routerLinkActive]="['pico-active']">My Bookings</a></li>
+        <li><a [routerLink]="['/provider/dashboard']" [routerLinkActive]="['pico-active']">Dashboard</a></li>
+      }
     </ul>
     <ul>
       @if (isAuthenticated$ | async) {

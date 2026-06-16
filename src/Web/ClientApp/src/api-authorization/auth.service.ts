@@ -23,8 +23,8 @@ export class AuthService {
     );
   }
 
-  login(phone: string, password: string): Observable<AuthResult> {
-    return this.authClient.login(new LoginCommand({ phone, password })).pipe(
+  login(email: string, password: string): Observable<AuthResult> {
+    return this.authClient.login(new LoginCommand({ email, password })).pipe(
       tap(result => {
         if (result.token) {
           localStorage.setItem('access_token', result.token);
@@ -35,8 +35,8 @@ export class AuthService {
     );
   }
 
-  register(phone: string, password: string, name: string, email?: string): Observable<AuthResult> {
-    return this.authClient.register(new RegisterCommand({ phone, password, name, email }));
+  register(email: string, password: string, name: string, phone?: string): Observable<AuthResult> {
+    return this.authClient.register(new RegisterCommand({ email, password, name, phone }));
   }
 
   logout(): Observable<void> {

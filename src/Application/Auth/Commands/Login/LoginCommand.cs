@@ -2,7 +2,7 @@ namespace CleanArchitecture.Application.Auth.Commands.Login;
 
 public record LoginCommand : IRequest<AuthResult>
 {
-    public string Phone { get; init; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
     public string Password { get; init; } = string.Empty;
 }
 
@@ -19,13 +19,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResult>
 
     public async Task<AuthResult> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var user = await _authService.FindByPhoneAsync(request.Phone);
+        var user = await _authService.FindByEmailAsync(request.Email);
         if (user == null)
-            throw new UnauthorizedAccessException("Invalid phone or password.");
+            throw new UnauthorizedAccessException("Invalid email or password.");
 
         var valid = await _authService.CheckPasswordAsync(user, request.Password);
         if (!valid)
-            throw new UnauthorizedAccessException("Invalid phone or password.");
+            throw new UnauthorizedAccessException("Invalid email or password.");
 
         var roles = await _authService.GetRolesAsync(user);
         var role = roles.FirstOrDefault() ?? Roles.Customer;

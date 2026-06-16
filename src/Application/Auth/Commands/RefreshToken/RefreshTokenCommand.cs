@@ -23,7 +23,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, T
         if (userId == null)
             throw new UnauthorizedAccessException("Invalid or expired refresh token.");
 
-        var user = await _authService.FindByPhoneAsync(request.UserId);
+        var user = await _authService.FindByIdAsync(request.UserId);
         var roles = user != null ? await _authService.GetRolesAsync(user) : new List<string>();
         var role = roles.FirstOrDefault() ?? Roles.Customer;
 

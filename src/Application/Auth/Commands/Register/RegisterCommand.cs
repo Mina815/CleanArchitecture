@@ -2,10 +2,10 @@ namespace CleanArchitecture.Application.Auth.Commands.Register;
 
 public record RegisterCommand : IRequest<AuthResult>
 {
-    public string Phone { get; init; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
     public string Password { get; init; } = string.Empty;
     public string Name { get; init; } = string.Empty;
-    public string? Email { get; init; }
+    public string? Phone { get; init; }
     public UserRole Role { get; init; } = UserRole.Customer;
 }
 
@@ -22,14 +22,14 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
 
     public async Task<AuthResult> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        var existing = await _authService.FindByPhoneAsync(request.Phone);
+        var existing = await _authService.FindByEmailAsync(request.Email);
         if (existing != null)
-            throw new InvalidOperationException("Phone number is already registered.");
+            throw new InvalidOperationException("Email is already registered.");
 
         var roleName = request.Role == UserRole.Provider ? Roles.Provider : Roles.Customer;
 
         var user = await _authService.CreateUserAsync(
-            request.Phone, request.Password, request.Name, request.Email, roleName);
+            request.Email, request.Password, request.Name, request.Phone, roleName);
 
         var tokens = await _jwtService.GenerateTokensAsync(user.Id, roleName);
 

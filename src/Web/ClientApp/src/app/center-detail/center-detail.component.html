@@ -1,0 +1,213 @@
+<div class="detail-page">
+  @if (loading) {
+    <section class="loading-state">
+      <lucide-icon name="loader" [size]="32" [strokeWidth]="2" class="spinner"></lucide-icon>
+      <p>Loading center details...</p>
+    </section>
+  } @else if (error || !center) {
+    <section class="error-state">
+      <lucide-icon name="message-square" [size]="48" [strokeWidth]="1.5"></lucide-icon>
+      <h3>Center not found</h3>
+      <p>We couldn't find this beauty center. It may have been removed or the link is invalid.</p>
+      <a [routerLink]="['/']" class="back-link">&larr; Back to centers</a>
+    </section>
+  } @else {
+    <div class="detail-content">
+      <a class="back-btn" [routerLink]="['/']">
+        <lucide-icon name="arrow-left" [size]="20" [strokeWidth]="2"></lucide-icon>
+        Back
+      </a>
+
+      <article class="center-header-card">
+        <div class="center-header">
+          <div class="header-logo">
+            @if (center.logoUrl) {
+              <img [src]="center.logoUrl" alt="" />
+            } @else {
+              <div class="logo-placeholder">{{ (center.name ?? 'C')[0] }}</div>
+            }
+          </div>
+          <div class="header-info">
+            <hgroup>
+              <h1>{{ center.name }}</h1>
+              @if (center.nameAr) {
+                <p class="name-ar">{{ center.nameAr }}</p>
+              }
+            </hgroup>
+            <div class="header-meta">
+              <div class="rating-row">
+                <div class="stars">
+                  @for (filled of getStars(center.averageRating); track $index) {
+                    <lucide-icon name="star" [size]="18" [strokeWidth]="1.5"
+                      [class.star-filled]="filled" [class.star-empty]="!filled"></lucide-icon>
+                  }
+                </div>
+                @if (center.averageRating) {
+                  <span class="rating-text">{{ center.averageRating.toFixed(1) }}</span>
+                }
+                @if (center.totalReviews) {
+                  <span class="review-count">({{ center.totalReviews }} {{ center.totalReviews === 1 ? 'review' : 'reviews' }})</span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-row">
+          @if (branches.length > 0 && branches[0].city) {
+            <div class="contact-item">
+              <lucide-icon name="map-pin" [size]="16" [strokeWidth]="2"></lucide-icon>
+              <span>{{ branches[0].city }}{{ branches[0].address ? ' - ' + branches[0].address : '' }}</span>
+            </div>
+          }
+          @if (branches.length > 0 && branches[0].phone) {
+            <div class="contact-item">
+              <lucide-icon name="phone" [size]="16" [strokeWidth]="2"></lucide-icon>
+              <span dir="ltr">{{ branches[0].phone }}</span>
+            </div>
+          }
+        </div>
+
+        @if (center.description || center.descriptionAr) {
+          <div class="description">
+            <p>{{ center.description || center.descriptionAr }}</p>
+          </div>
+        }
+      </article>
+
+      <nav class="tabs">
+        <button [class.active]="activeTab === 'services'" (click)="activeTab = 'services'">
+          <lucide-icon name="award" [size]="16" [strokeWidth]="2"></lucide-icon>
+          الخدمات
+        </button>
+        <button [class.active]="activeTab === 'branches'" (click)="activeTab = 'branches'">
+          <lucide-icon name="map-pin" [size]="16" [strokeWidth]="2"></lucide-icon>
+          الفروع
+        </button>
+        <button [class.active]="activeTab === 'reviews'" (click)="activeTab = 'reviews'">
+          <lucide-icon name="message-square" [size]="16" [strokeWidth]="2"></lucide-icon>
+          التقييمات
+        </button>
+      </nav>
+
+      @if (activeTab === 'services') {
+        <section class="tab-content">
+          @if (services.length === 0) {
+            <div class="empty-tab">
+              <lucide-icon name="award" [size]="32" [strokeWidth]="1.5"></lucide-icon>
+              <p>No services available yet</p>
+            </div>
+          } @else {
+            <div class="services-grid">
+              @for (service of services; track service.id) {
+                <article class="service-card">
+                  <div class="service-info">
+                    <h3>{{ service.name }}</h3>
+                    @if (service.nameAr) {
+                      <p class="service-name-ar">{{ service.nameAr }}</p>
+                    }
+                    @if (service.description) {
+                      <p class="service-desc">{{ service.description }}</p>
+                    }
+                    <div class="service-meta">
+                      <span class="meta-item">
+                        <lucide-icon name="clock" [size]="14" [strokeWidth]="2"></lucide-icon>
+                        {{ service.durationMinutes }} min
+                      </span>
+                      <span class="meta-item price">{{ service.price }} EGP</span>
+                    </div>
+                  </div>
+                  <button class="book-service-btn" (click)="bookNow()">Book Now</button>
+                </article>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      @if (activeTab === 'branches') {
+        <section class="tab-content">
+          @if (branches.length === 0) {
+            <div class="empty-tab">
+              <lucide-icon name="map-pin" [size]="32" [strokeWidth]="1.5"></lucide-icon>
+              <p>No branches available</p>
+            </div>
+          } @else {
+            <div class="branches-list">
+              @for (branch of branches; track branch.id) {
+                <article class="branch-card">
+                  <div class="branch-header">
+                    <h3>{{ branch.name }}</h3>
+                    @if (branch.nameAr) {
+                      <p class="branch-name-ar">{{ branch.nameAr }}</p>
+                    }
+                  </div>
+                  <div class="branch-details">
+                    <div class="branch-detail-item">
+                      <lucide-icon name="map-pin" [size]="14" [strokeWidth]="2"></lucide-icon>
+                      <span>{{ branch.address }}{{ branch.city ? ', ' + branch.city : '' }}</span>
+                    </div>
+                    @if (branch.phone) {
+                      <div class="branch-detail-item">
+                        <lucide-icon name="phone" [size]="14" [strokeWidth]="2"></lucide-icon>
+                        <span dir="ltr">{{ branch.phone }}</span>
+                      </div>
+                    }
+                    <div class="branch-detail-item">
+                      <lucide-icon name="clock" [size]="14" [strokeWidth]="2"></lucide-icon>
+                      <span>Working hours vary — contact branch</span>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      @if (activeTab === 'reviews') {
+        <section class="tab-content">
+          @if (reviews.length === 0) {
+            <div class="empty-tab">
+              <lucide-icon name="message-square" [size]="32" [strokeWidth]="1.5"></lucide-icon>
+              <p>No reviews yet</p>
+            </div>
+          } @else {
+            <div class="reviews-list">
+              @for (review of reviews; track review.id) {
+                <article class="review-card">
+                  <div class="review-header">
+                    <div class="review-avatar">
+                      {{ (review.customerName ?? 'A')[0] }}
+                    </div>
+                    <div class="review-meta">
+                      <strong>{{ review.customerName }}</strong>
+                      <div class="stars small">
+                        @for (filled of getStars(review.rating); track $index) {
+                          <lucide-icon name="star" [size]="14" [strokeWidth]="1.5"
+                            [class.star-filled]="filled" [class.star-empty]="!filled"></lucide-icon>
+                        }
+                      </div>
+                    </div>
+                    @if (review.created) {
+                      <time class="review-date">{{ review.created | date:'mediumDate' }}</time>
+                    }
+                  </div>
+                  @if (review.comment) {
+                    <p class="review-comment">{{ review.comment }}</p>
+                  }
+                </article>
+              }
+            </div>
+          }
+        </section>
+      }
+    </div>
+
+    <div class="floating-book">
+      <button class="book-now-btn" (click)="bookNow()">
+        Book Now
+      </button>
+    </div>
+  }
+</div>

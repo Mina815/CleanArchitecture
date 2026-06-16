@@ -11,8 +11,9 @@ public class AuthUserDto
 
 public interface IAuthService
 {
-    Task<AuthUserDto?> FindByPhoneAsync(string phone);
+    Task<AuthUserDto?> FindByEmailAsync(string email);
+    Task<AuthUserDto?> FindByIdAsync(string userId);
     Task<bool> CheckPasswordAsync(AuthUserDto user, string password);
     Task<IList<string>> GetRolesAsync(AuthUserDto user);
-    Task<AuthUserDto> CreateUserAsync(string phone, string password, string name, string? email, string role);
+    Task<AuthUserDto> CreateUserAsync(string email, string password, string name, string? phone, string role);
 }

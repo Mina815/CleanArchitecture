@@ -2,13 +2,17 @@ import { APP_ID, NgModule, inject, provideAppInitializer } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Sun, Moon, Laptop, Plus, Settings, MoreHorizontal } from 'lucide-angular';
+import { LucideAngularModule, Sun, Moon, Laptop, Plus, Settings, MoreHorizontal, Search, Loader, Sparkles, MapPin, Star, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, Calendar, Clock, CheckCircle, CreditCard, Users, XCircle, Eye, BarChart3, Phone, Award, MessageSquare } from 'lucide-angular';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
 import { NavMenuComponent } from './nav-menu/nav-menu.component';
 import { HomeComponent } from './home/home.component';
 import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
+import { CenterDetailComponent } from './center-detail/center-detail.component';
+import { BookingComponent } from './booking/booking.component';
+import { MyBookingsComponent } from './my-bookings/my-bookings.component';
+import { ProviderDashboardComponent } from './provider-dashboard/provider-dashboard.component';
 import { API_BASE_URL } from './web-api-client';
 import { AuthorizeInterceptor } from 'src/api-authorization/authorize.interceptor';
 import { LoginComponent } from 'src/api-authorization/login/login.component';
@@ -28,17 +32,25 @@ export function getApiBaseUrl(): string {
         HomeComponent,
         ThemeToggleComponent,
         LoginComponent,
-        RegisterComponent
+        RegisterComponent,
+        CenterDetailComponent,
+        BookingComponent,
+        MyBookingsComponent,
+        ProviderDashboardComponent
     ],
     bootstrap: [AppComponent],
     imports: [
         BrowserModule,
         FormsModule,
-        LucideAngularModule.pick({ Sun, Moon, Laptop, Plus, Settings, MoreHorizontal }),
+        LucideAngularModule.pick({ Sun, Moon, Laptop, Plus, Settings, MoreHorizontal, Search, Loader, Sparkles, MapPin, Star, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, Calendar, Clock, CheckCircle, CreditCard, Users, XCircle, Eye, BarChart3, Phone, Award, MessageSquare }),
         RouterModule.forRoot([
             { path: '', component: HomeComponent, pathMatch: 'full' },
             { path: 'login', component: LoginComponent },
-            { path: 'register', component: RegisterComponent }
+            { path: 'register', component: RegisterComponent },
+            { path: 'centers/:id', component: CenterDetailComponent },
+            { path: 'book/:centerId', component: BookingComponent, canActivate: [AuthGuard] },
+            { path: 'my-bookings', component: MyBookingsComponent, canActivate: [AuthGuard] },
+            { path: 'provider/dashboard', component: ProviderDashboardComponent, canActivate: [AuthGuard] }
         ])
     ],
     providers: [

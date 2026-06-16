@@ -1,0 +1,87 @@
+<section>
+  <header style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+    <h1 style="margin: 0;">حجوزاتي</h1>
+    <a role="button" class="secondary" style="margin-inline-start: auto;" routerLink="/">تصفح المراكز</a>
+  </header>
+
+  <nav style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+    <button [class.secondary]="filter !== 'upcoming'" (click)="filter = 'upcoming'">القادمة</button>
+    <button [class.secondary]="filter !== 'past'" (click)="filter = 'past'">السابقة</button>
+    <button [class.secondary]="filter !== 'all'" (click)="filter = 'all'">الكل</button>
+  </nav>
+
+  @if (loading) {
+    <article style="text-align: center; padding: 3rem 0;">
+      <lucide-icon name="loader" class="spinner" style="width: 2rem; height: 2rem;"></lucide-icon>
+      <p style="margin-top: 0.5rem;">جاري التحميل...</p>
+    </article>
+  } @else if (filteredBookings().length === 0) {
+    <article class="empty-state" style="text-align: center; padding: 3rem 0;">
+      <lucide-icon name="calendar" style="width: 3rem; height: 3rem; opacity: 0.3;"></lucide-icon>
+      <hgroup>
+        <h3>لا توجد حجوزات</h3>
+        <p>لم تقم بأي حجوزات بعد</p>
+      </hgroup>
+      <a role="button" routerLink="/">تصفح المراكز</a>
+    </article>
+  } @else {
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      @for (booking of filteredBookings(); track booking.id) {
+        <article style="padding: 1rem;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;">
+            <div style="flex: 1;">
+              <hgroup style="margin-bottom: 0.5rem;">
+                <h3 style="margin-bottom: 0.25rem;">{{ booking.serviceName }}</h3>
+                <p style="margin: 0; color: var(--pico-muted-color);">{{ booking.branchName }}</p>
+              </hgroup>
+              <div style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.875rem; color: var(--pico-muted-color);">
+                <span style="display: flex; align-items: center; gap: 0.25rem;">
+                  <lucide-icon name="calendar" style="width: 1rem; height: 1rem;"></lucide-icon>
+                  {{ formatDate(booking.bookingDate) }}
+                </span>
+                <span style="display: flex; align-items: center; gap: 0.25rem;">
+                  <lucide-icon name="clock" style="width: 1rem; height: 1rem;"></lucide-icon>
+                  {{ booking.startTime }} - {{ booking.endTime }}
+                </span>
+              </div>
+              @if (booking['customerNotes']) {
+                <p style="margin-top: 0.5rem; font-size: 0.875rem; font-style: italic; color: var(--pico-muted-color);">
+                  ملاحظة: {{ booking['customerNotes'] }}
+                </p>
+              }
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; flex-shrink: 0;">
+              <span class="status-badge {{ getStatusClass(booking.status) }}">{{ getStatusLabel(booking.status) }}</span>
+              @if (booking.totalAmount) {
+                <span style="font-weight: 700; font-size: 1.1rem;">{{ booking.totalAmount }} ر.س</span>
+              }
+              @if (canCancel(booking)) {
+                <button class="secondary" style="font-size: 0.8rem; padding: 0.25rem 0.75rem;" (click)="cancel(booking.id!)">
+                  إلغاء
+                </button>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  @if (showCancelDialog) {
+    <dialog open>
+      <article>
+        <header>
+          <h3>تأكيد الإلغاء</h3>
+          <button rel="prev" class="icon-btn" (click)="showCancelDialog = false">&times;</button>
+        </header>
+        <p>هل أنت متأكد من رغبتك في إلغاء هذا الحجز؟</p>
+        <label for="cancelReason">سبب الإلغاء (اختياري)</label>
+        <textarea id="cancelReason" [(ngModel)]="cancelReason" rows="3" placeholder="اذكر سبب الإلغاء..."></textarea>
+        <footer>
+          <button class="secondary" (click)="showCancelDialog = false">رجوع</button>
+          <button class="danger" (click)="confirmCancel()">تأكيد الإلغاء</button>
+        </footer>
+      </article>
+    </dialog>
+  }
+</section>

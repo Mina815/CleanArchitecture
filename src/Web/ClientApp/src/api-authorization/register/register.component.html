@@ -4,6 +4,12 @@
     <p class="error">{{ error }}</p>
   }
   <form (ngSubmit)="register()">
+    <label for="name">Full Name</label>
+    <input type="text" id="name" name="name" [(ngModel)]="name"
+      [attr.aria-invalid]="nameTouched ? !nameValid : null"
+      autocomplete="name"
+      (blur)="nameTouched = true" />
+    <small>{{ nameTouched && !nameValid ? 'Name is required.' : '' }}</small>
     <label for="email">Email</label>
     <input type="email" id="email" name="email" [(ngModel)]="email"
       [attr.aria-invalid]="emailTouched ? !emailValid : null"
@@ -22,6 +28,9 @@
     <small id="password-helper">
       {{ passwordTouched && !passwordValid ? 'Password must be at least ' + minPasswordLength + ' characters.' : '' }}
     </small>
+    <label for="phone">Phone (optional)</label>
+    <input type="tel" id="phone" name="phone" [(ngModel)]="phone"
+      autocomplete="tel" />
     <button type="submit">Register</button>
     <p style="margin-top: 1rem">Already have an account? <a [routerLink]="['/login']">Log in</a></p>
   </form>

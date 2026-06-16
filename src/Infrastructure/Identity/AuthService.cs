@@ -14,9 +14,24 @@ public class AuthService : IAuthService
         _roleManager = roleManager;
     }
 
-    public async Task<AuthUserDto?> FindByPhoneAsync(string phone)
+    public async Task<AuthUserDto?> FindByEmailAsync(string email)
     {
-        var user = await _userManager.FindByNameAsync(phone);
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null) return null;
+
+        return new AuthUserDto
+        {
+            Id = user.Id,
+            UserName = user.UserName ?? string.Empty,
+            Email = user.Email,
+            FullName = user.FullName,
+            FullNameAr = user.FullNameAr
+        };
+    }
+
+    public async Task<AuthUserDto?> FindByIdAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
         if (user == null) return null;
 
         return new AuthUserDto
@@ -43,13 +58,13 @@ public class AuthService : IAuthService
         return await _userManager.GetRolesAsync(identityUser);
     }
 
-    public async Task<AuthUserDto> CreateUserAsync(string phone, string password, string name, string? email, string role)
+    public async Task<AuthUserDto> CreateUserAsync(string email, string password, string name, string? phone, string role)
     {
         var user = new ApplicationUser
         {
-            UserName = phone,
-            PhoneNumber = phone,
+            UserName = email,
             Email = email,
+            PhoneNumber = phone,
             FullName = name,
             FullNameAr = name
         };
