@@ -33,6 +33,8 @@ public class CenterDetailDto
                         .OrderBy(i => i.DisplayOrder)
                         .Select(i => i.ImageUrl)
                         .ToList()));
+
+            CreateMap<Branch, BranchDto>();
         }
     }
 }
