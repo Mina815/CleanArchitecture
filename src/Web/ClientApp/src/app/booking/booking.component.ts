@@ -1,5 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { BookingsClient, CentersClient, BranchesClient, ServicesClient, BranchDto, ServiceDto, TimeSlotDto, CenterDetailDto, CreateBookingCommand } from '../web-api-client';
 
 @Component({
@@ -7,13 +9,8 @@ import { BookingsClient, CentersClient, BranchesClient, ServicesClient, BranchDt
   selector: 'app-booking',
   templateUrl: './booking.component.html'
 })
-export class BookingComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private bookingsClient = inject(BookingsClient);
-  private centersClient = inject(CentersClient);
-  private branchesClient = inject(BranchesClient);
-  private servicesClient = inject(ServicesClient);
+export class BookingComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   currentStep = 1;
   center: CenterDetailDto | null = null;
@@ -30,25 +27,41 @@ export class BookingComponent implements OnInit {
   submitting = false;
   error = '';
 
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private bookingsClient: BookingsClient,
+    private centersClient: CentersClient,
+    private branchesClient: BranchesClient,
+    private servicesClient: ServicesClient,
+    private cdr: ChangeDetectorRef
+  ) {}
+
   ngOnInit(): void {
     const centerId = Number(this.route.snapshot.paramMap.get('centerId'));
     this.selectedDate = this.todayString();
     this.loading = true;
+    this.cdr.detectChanges();
 
-    this.centersClient.getCenterById(centerId).subscribe({
-      next: center => { this.center = center; this.loading = false; },
-      error: () => { this.loading = false; this.error = 'Failed to load center details.'; }
+    this.centersClient.getCenterById(centerId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: center => { this.center = center; this.loading = false; this.cdr.detectChanges(); },
+      error: () => { this.loading = false; this.error = 'Failed to load center details.'; this.cdr.detectChanges(); }
     });
 
-    this.branchesClient.getBranches(centerId).subscribe({
-      next: branches => { this.branches = branches; },
-      error: () => { this.error = 'Failed to load branches.'; }
+    this.branchesClient.getBranches(centerId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: branches => { this.branches = branches; this.cdr.detectChanges(); },
+      error: () => { this.error = 'Failed to load branches.'; this.cdr.detectChanges(); }
     });
 
-    this.servicesClient.getServices(centerId).subscribe({
-      next: services => { this.services = services; },
-      error: () => { this.error = 'Failed to load services.'; }
+    this.servicesClient.getServices(centerId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: services => { this.services = services; this.cdr.detectChanges(); },
+      error: () => { this.error = 'Failed to load services.'; this.cdr.detectChanges(); }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   selectBranch(branch: BranchDto): void {
@@ -79,20 +92,23 @@ export class BookingComponent implements OnInit {
     if (!this.selectedBranch?.id || !this.selectedService?.id || !this.selectedDate) return;
     this.loading = true;
     this.error = '';
+    this.cdr.detectChanges();
     this.bookingsClient.getAvailableSlots(
       this.selectedBranch.id,
       this.selectedService.id,
       new Date(this.selectedDate),
       undefined
-    ).subscribe({
+    ).pipe(takeUntil(this.destroy$)).subscribe({
       next: slots => {
         this.availableSlots = slots;
         this.timeSlots = slots;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
         this.error = 'Failed to load available slots.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -111,7 +127,7 @@ export class BookingComponent implements OnInit {
       customerNotes: this.customerNotes || undefined
     });
 
-    this.bookingsClient.createBooking(command).subscribe({
+    this.bookingsClient.createBooking(command).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.submitting = false;
         this.router.navigate(['/my-bookings']);
@@ -119,6 +135,7 @@ export class BookingComponent implements OnInit {
       error: () => {
         this.submitting = false;
         this.error = 'Failed to create booking. Please try again.';
+        this.cdr.detectChanges();
       }
     });
   }

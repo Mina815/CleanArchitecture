@@ -1,4 +1,4 @@
-import { APP_ID, NgModule, inject, provideAppInitializer } from '@angular/core';
+import { APP_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -18,8 +18,6 @@ import { AuthorizeInterceptor } from 'src/api-authorization/authorize.intercepto
 import { LoginComponent } from 'src/api-authorization/login/login.component';
 import { RegisterComponent } from 'src/api-authorization/register/register.component';
 import { AuthGuard } from 'src/api-authorization/auth.guard';
-import { AuthService } from 'src/api-authorization/auth.service';
-
 export function getApiBaseUrl(): string {
   const url = document.getElementsByTagName('base')[0].href;
   return url.endsWith('/') ? url.slice(0, -1) : url;
@@ -57,7 +55,6 @@ export function getApiBaseUrl(): string {
         { provide: APP_ID, useValue: 'ng-cli-universal' },
         { provide: HTTP_INTERCEPTORS, useClass: AuthorizeInterceptor, multi: true },
         { provide: API_BASE_URL, useFactory: getApiBaseUrl, deps: [] },
-        provideAppInitializer(() => inject(AuthService).initialize()),
         provideHttpClient(withInterceptorsFromDi())
     ]
 })

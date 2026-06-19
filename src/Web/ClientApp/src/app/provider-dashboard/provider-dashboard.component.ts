@@ -1,4 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { BookingsClient, CentersClient, BranchesClient, CenterDto, BranchDto, BookingDto } from '../web-api-client';
 
 interface DashboardStats {
@@ -15,10 +17,8 @@ interface DashboardStats {
   selector: 'app-provider-dashboard',
   templateUrl: './provider-dashboard.component.html'
 })
-export class ProviderDashboardComponent implements OnInit {
-  private bookingsClient = inject(BookingsClient);
-  private centersClient = inject(CentersClient);
-  private branchesClient = inject(BranchesClient);
+export class ProviderDashboardComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   centers: CenterDto[] = [];
   selectedCenterId: number | null = null;
@@ -28,14 +28,27 @@ export class ProviderDashboardComponent implements OnInit {
   loading = false;
   stats: DashboardStats = { total: 0, pending: 0, confirmed: 0, inProgress: 0, cancelled: 0, completed: 0 };
 
+  constructor(
+    private bookingsClient: BookingsClient,
+    private centersClient: CentersClient,
+    private branchesClient: BranchesClient,
+    private cdr: ChangeDetectorRef
+  ) {}
+
   ngOnInit(): void {
     this.loadCenters();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadCenters(): void {
-    this.centersClient.getCenters(undefined, undefined, 1, 100).subscribe({
+    this.centersClient.getCenters(undefined, undefined, 1, 100).pipe(takeUntil(this.destroy$)).subscribe({
       next: result => {
         this.centers = result.items ?? [];
+        this.cdr.detectChanges();
       }
     });
   }
@@ -45,9 +58,11 @@ export class ProviderDashboardComponent implements OnInit {
     this.selectedBranchId = null;
     this.todayBookings = [];
     this.stats = { total: 0, pending: 0, confirmed: 0, inProgress: 0, cancelled: 0, completed: 0 };
-    this.branchesClient.getBranches(centerId).subscribe({
+    this.cdr.detectChanges();
+    this.branchesClient.getBranches(centerId).pipe(takeUntil(this.destroy$)).subscribe({
       next: result => {
         this.branches = result ?? [];
+        this.cdr.detectChanges();
       }
     });
   }
@@ -59,14 +74,17 @@ export class ProviderDashboardComponent implements OnInit {
 
   loadBranchBookings(branchId: number): void {
     this.loading = true;
-    this.bookingsClient.getBranchBookingsToday(branchId).subscribe({
+    this.cdr.detectChanges();
+    this.bookingsClient.getBranchBookingsToday(branchId).pipe(takeUntil(this.destroy$)).subscribe({
       next: result => {
         this.todayBookings = result ?? [];
         this.calculateStats();
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }

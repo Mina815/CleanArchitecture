@@ -1,5 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CentersClient, CenterDetailDto, ServicesClient, ServiceDto, BranchesClient, BranchDto, ReviewsClient, ReviewDto } from '../web-api-client';
 
 @Component({
@@ -8,13 +10,8 @@ import { CentersClient, CenterDetailDto, ServicesClient, ServiceDto, BranchesCli
   templateUrl: './center-detail.component.html',
   styleUrls: ['./center-detail.component.scss']
 })
-export class CenterDetailComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private centersClient = inject(CentersClient);
-  private servicesClient = inject(ServicesClient);
-  private branchesClient = inject(BranchesClient);
-  private reviewsClient = inject(ReviewsClient);
+export class CenterDetailComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   center: CenterDetailDto | null = null;
   services: ServiceDto[] = [];
@@ -23,6 +20,16 @@ export class CenterDetailComponent implements OnInit {
   loading = true;
   error = false;
   activeTab: 'services' | 'branches' | 'reviews' = 'services';
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private centersClient: CentersClient,
+    private servicesClient: ServicesClient,
+    private branchesClient: BranchesClient,
+    private reviewsClient: ReviewsClient,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -34,32 +41,49 @@ export class CenterDetailComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   private loadCenter(id: number): void {
     this.loading = true;
     this.error = false;
+    this.cdr.detectChanges();
 
-    this.centersClient.getCenterById(id).subscribe({
+    this.centersClient.getCenterById(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: center => {
         this.center = center;
         this.branches = center.branches ?? [];
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.error = true;
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
 
-    this.servicesClient.getServices(id).subscribe({
-      next: services => this.services = services ?? []
+    this.servicesClient.getServices(id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: services => {
+        this.services = services ?? [];
+        this.cdr.detectChanges();
+      }
     });
 
-    this.branchesClient.getBranches(id).subscribe({
-      next: branches => this.branches = branches ?? []
+    this.branchesClient.getBranches(id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: branches => {
+        this.branches = branches ?? [];
+        this.cdr.detectChanges();
+      }
     });
 
-    this.reviewsClient.getReviews(id, undefined, undefined).subscribe({
-      next: result => this.reviews = result.items ?? []
+    this.reviewsClient.getReviews(id, undefined, undefined).pipe(takeUntil(this.destroy$)).subscribe({
+      next: result => {
+        this.reviews = result.items ?? [];
+        this.cdr.detectChanges();
+      }
     });
   }
 

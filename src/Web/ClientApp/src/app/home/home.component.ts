@@ -1,4 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CentersClient, CenterDto } from '../web-api-client';
 
 @Component({
@@ -7,8 +9,8 @@ import { CentersClient, CenterDto } from '../web-api-client';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements OnInit {
-  private centersClient = inject(CentersClient);
+export class HomeComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   centers: CenterDto[] = [];
   search = '';
@@ -23,18 +25,30 @@ export class HomeComponent implements OnInit {
 
   cities = ['الرياض', 'جدة', 'مكة', 'المدينة', 'الدمام', 'الخبر', 'تبوك', 'بريدة', 'حائل', 'أبها'];
 
+  constructor(
+    private centersClient: CentersClient,
+    private cdr: ChangeDetectorRef
+  ) {}
+
   ngOnInit(): void {
     this.loadCenters();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadCenters(): void {
     this.loading = true;
+    this.cdr.detectChanges();
+
     this.centersClient.getCenters(
       this.city || undefined,
       this.search || undefined,
       this.pageNumber,
       this.pageSize
-    ).subscribe({
+    ).pipe(takeUntil(this.destroy$)).subscribe({
       next: result => {
         this.centers = result.items ?? [];
         this.totalCount = result.totalCount ?? 0;
@@ -42,9 +56,11 @@ export class HomeComponent implements OnInit {
         this.hasPreviousPage = result.hasPreviousPage ?? false;
         this.hasNextPage = result.hasNextPage ?? false;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }

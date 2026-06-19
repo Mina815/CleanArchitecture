@@ -1,4 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { BookingsClient, BookingDto } from '../web-api-client';
 
 @Component({
@@ -6,8 +8,8 @@ import { BookingsClient, BookingDto } from '../web-api-client';
   selector: 'app-my-bookings',
   templateUrl: './my-bookings.component.html'
 })
-export class MyBookingsComponent implements OnInit {
-  private bookingsClient = inject(BookingsClient);
+export class MyBookingsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   bookings: BookingDto[] = [];
   loading = false;
@@ -16,19 +18,32 @@ export class MyBookingsComponent implements OnInit {
   cancelReason = '';
   filter: 'upcoming' | 'past' | 'all' = 'upcoming';
 
+  constructor(
+    private bookingsClient: BookingsClient,
+    private cdr: ChangeDetectorRef
+  ) {}
+
   ngOnInit(): void {
     this.loadBookings();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadBookings(): void {
     this.loading = true;
-    this.bookingsClient.getMyBookings(undefined).subscribe({
+    this.cdr.detectChanges();
+    this.bookingsClient.getMyBookings(undefined).pipe(takeUntil(this.destroy$)).subscribe({
       next: result => {
         this.bookings = result ?? [];
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -53,7 +68,7 @@ export class MyBookingsComponent implements OnInit {
 
   confirmCancel(): void {
     if (!this.cancelBookingId) return;
-    this.bookingsClient.cancelBooking(this.cancelBookingId, this.cancelReason || undefined).subscribe({
+    this.bookingsClient.cancelBooking(this.cancelBookingId, this.cancelReason || undefined).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.showCancelDialog = false;
         this.cancelBookingId = null;
