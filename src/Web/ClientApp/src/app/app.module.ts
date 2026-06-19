@@ -2,7 +2,7 @@ import { APP_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Sun, Moon, Laptop, Plus, Settings, MoreHorizontal, Search, Loader, Sparkles, MapPin, Star, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, Calendar, Clock, CheckCircle, CreditCard, Users, XCircle, Eye, BarChart3, Phone, Award, MessageSquare } from 'lucide-angular';
+import { LucideAngularModule, Sun, Moon, Laptop, Plus, Settings, MoreHorizontal, Search, Loader, Sparkles, MapPin, Star, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, Calendar, Clock, CheckCircle, CreditCard, Users, XCircle, Eye, BarChart3, Phone, Award, MessageSquare, PenSquare } from 'lucide-angular';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
@@ -13,6 +13,7 @@ import { CenterDetailComponent } from './center-detail/center-detail.component';
 import { BookingComponent } from './booking/booking.component';
 import { MyBookingsComponent } from './my-bookings/my-bookings.component';
 import { ProviderDashboardComponent } from './provider-dashboard/provider-dashboard.component';
+import { BranchManagementComponent } from './branch-management/branch-management.component';
 import { API_BASE_URL } from './web-api-client';
 import { AuthorizeInterceptor } from 'src/api-authorization/authorize.interceptor';
 import { LoginComponent } from 'src/api-authorization/login/login.component';
@@ -34,13 +35,14 @@ export function getApiBaseUrl(): string {
         CenterDetailComponent,
         BookingComponent,
         MyBookingsComponent,
-        ProviderDashboardComponent
+        ProviderDashboardComponent,
+        BranchManagementComponent
     ],
     bootstrap: [AppComponent],
     imports: [
         BrowserModule,
         FormsModule,
-        LucideAngularModule.pick({ Sun, Moon, Laptop, Plus, Settings, MoreHorizontal, Search, Loader, Sparkles, MapPin, Star, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, Calendar, Clock, CheckCircle, CreditCard, Users, XCircle, Eye, BarChart3, Phone, Award, MessageSquare }),
+        LucideAngularModule.pick({ Sun, Moon, Laptop, Plus, Settings, MoreHorizontal, Search, Loader, Sparkles, MapPin, Star, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, Calendar, Clock, CheckCircle, CreditCard, Users, XCircle, Eye, BarChart3, Phone, Award, MessageSquare, PenSquare }),
         RouterModule.forRoot([
             { path: '', component: HomeComponent, pathMatch: 'full' },
             { path: 'login', component: LoginComponent },
@@ -48,7 +50,8 @@ export function getApiBaseUrl(): string {
             { path: 'centers/:id', component: CenterDetailComponent },
             { path: 'book/:centerId', component: BookingComponent, canActivate: [AuthGuard] },
             { path: 'my-bookings', component: MyBookingsComponent, canActivate: [AuthGuard] },
-            { path: 'provider/dashboard', component: ProviderDashboardComponent, canActivate: [AuthGuard] }
+            { path: 'provider/dashboard', component: ProviderDashboardComponent, canActivate: [AuthGuard] },
+            { path: 'provider/branches', component: BranchManagementComponent, canActivate: [AuthGuard] }
         ])
     ],
     providers: [

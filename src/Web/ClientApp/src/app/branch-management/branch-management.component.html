@@ -1,0 +1,114 @@
+<section>
+  <header style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+    <h1 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+      إدارة الفروع
+    </h1>
+  </header>
+
+  <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+    <select style="flex: 1; min-width: 200px;" [value]="selectedCenterId ?? ''" (change)="selectCenter(+$any($event.target).value)">
+      <option value="" disabled>اختر المركز</option>
+      @for (center of centers; track center.id) {
+        <option [value]="center.id">{{ center.name || center.nameAr }}</option>
+      }
+    </select>
+    @if (selectedCenterId) {
+      <button (click)="openCreateForm()">
+        إضافة فرع جديد
+      </button>
+    }
+  </div>
+
+  @if (showForm) {
+    <article style="margin-bottom: 1.5rem;">
+      <hgroup style="margin-bottom: 1rem;">
+        <h2>{{ editBranch ? 'تعديل الفرع' : 'إضافة فرع جديد' }}</h2>
+      </hgroup>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+        <label>الاسم (عربي)
+          <input [(ngModel)]="formNameAr" placeholder="الاسم بالعربية" required />
+        </label>
+        <label>الاسم (إنجليزي)
+          <input [(ngModel)]="formName" placeholder="Name in English" required />
+        </label>
+        <label style="grid-column: span 2;">العنوان
+          <input [(ngModel)]="formAddress" placeholder="عنوان الفرع" required />
+        </label>
+        <label>المدينة
+          <input [(ngModel)]="formCity" placeholder="المدينة" required />
+        </label>
+        <label>الحي
+          <input [(ngModel)]="formDistrict" placeholder="الحي (اختياري)" />
+        </label>
+        <label>رقم الجوال
+          <input [(ngModel)]="formPhone" placeholder="رقم الجوال (اختياري)" type="tel" />
+        </label>
+        <label>رقم واتساب
+          <input [(ngModel)]="formWhatsapp" placeholder="رقم واتساب (اختياري)" type="tel" />
+        </label>
+      </div>
+      <footer style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+        <button class="secondary" (click)="cancelForm()">إلغاء</button>
+        <button (click)="saveBranch()" [attr.aria-busy]="saving">
+          {{ editBranch ? 'حفظ التغييرات' : 'إضافة' }}
+        </button>
+      </footer>
+    </article>
+  }
+
+  @if (selectedCenterId && !showForm) {
+    @if (loading) {
+      <article style="text-align: center; padding: 3rem 0;">
+        <p>جاري التحميل...</p>
+      </article>
+    } @else if (branches.length === 0) {
+      <article style="text-align: center; padding: 3rem 0;">
+        <hgroup>
+          <h3>لا توجد فروع</h3>
+          <p>لم تقم بإضافة أي فروع بعد. انقر على "إضافة فرع جديد" للبدء.</p>
+        </hgroup>
+      </article>
+    } @else {
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        @for (branch of branches; track branch.id) {
+          <article style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 10px;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <strong>{{ branch.nameAr || branch.name }}</strong>
+                @if (branch.isActive) {
+                  <span class="badge badge--active">نشط</span>
+                } @else {
+                  <span class="badge badge--inactive">غير نشط</span>
+                }
+              </div>
+              <small style="color: var(--pico-muted-color); display: block; margin-top: 0.25rem;">
+                {{ branch.name ? (branch.nameAr ? branch.nameAr + ' · ' : '') + branch.name : '' }}
+              </small>
+              <div style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--pico-muted-color);">
+                {{ branch.city }}{{ branch.address ? ' · ' + branch.address : '' }}
+                @if (branch.phone) {
+                   · {{ branch.phone }}
+                }
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.35rem; flex-shrink: 0;">
+              <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="openEditForm(branch)">
+                تعديل
+              </button>
+              <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="toggleActive(branch)">
+                {{ branch.isActive ? 'تعطيل' : 'تفعيل' }}
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  } @else if (!selectedCenterId) {
+    <article style="text-align: center; padding: 3rem 0;">
+      <hgroup>
+        <h3>اختر مركزًا</h3>
+        <p>يرجى اختيار مركز لإدارة فروعه</p>
+      </hgroup>
+    </article>
+  }
+</section>

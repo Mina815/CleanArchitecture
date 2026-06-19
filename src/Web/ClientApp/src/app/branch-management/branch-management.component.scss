@@ -1,0 +1,16 @@
+.badge {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.badge--active {
+  background: color-mix(in srgb, #22c55e 15%, transparent);
+  color: #22c55e;
+}
+
+.badge--inactive {
+  background: color-mix(in srgb, var(--pico-muted-color) 15%, transparent);
+  color: var(--pico-muted-color);
+}

@@ -8,6 +8,7 @@
       @if (isAuthenticated$ | async) {
         <li><a [routerLink]="['/my-bookings']" [routerLinkActive]="['pico-active']">My Bookings</a></li>
         <li><a [routerLink]="['/provider/dashboard']" [routerLinkActive]="['pico-active']">Dashboard</a></li>
+        <li><a [routerLink]="['/provider/branches']" [routerLinkActive]="['pico-active']">Branches</a></li>
       }
     </ul>
     <ul>
