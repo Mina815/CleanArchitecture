@@ -15,7 +15,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<Service> Services => Set<Service>();
     public DbSet<ServiceCategory> ServiceCategories => Set<ServiceCategory>();
-    public DbSet<Staff> StaffMembers => Set<Staff>();
+    public DbSet<Domain.Entities.Staff> StaffMembers => Set<Domain.Entities.Staff>();
+    public DbSet<StaffService> StaffServices => Set<StaffService>();
     public DbSet<WorkingHour> WorkingHours => Set<WorkingHour>();
     public DbSet<TimeOff> TimeOffs => Set<TimeOff>();
     public DbSet<Booking> Bookings => Set<Booking>();

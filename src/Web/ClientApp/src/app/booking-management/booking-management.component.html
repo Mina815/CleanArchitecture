@@ -1,0 +1,65 @@
+<section>
+  <header style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+    <h1 style="margin: 0;">إدارة الحجوزات</h1>
+  </header>
+
+  <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+    <select style="flex: 1;" [value]="selectedBranchId ?? ''" (change)="selectBranch(+$any($event.target).value)">
+      <option value="" disabled>اختر الفرع</option>
+      @for (b of branches; track b.id) { <option [value]="b.id">{{ b.nameAr || b.name }}</option> }
+    </select>
+  </div>
+
+  @if (selectedDetail) {
+    <article style="margin-bottom: 1rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center;">
+        <hgroup style="margin: 0;">
+          <h3 style="margin: 0;">تفاصيل الحجز #{{ selectedDetail.id }}</h3>
+        </hgroup>
+        <button class="secondary" style="padding: 0.4rem 0.75rem;" (click)="selectedDetail = null">عودة</button>
+      </header>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem;">
+        <div><strong>العميل:</strong> {{ selectedDetail.customerName || selectedDetail.customerId }}</div>
+        <div><strong>الخدمة:</strong> {{ selectedDetail.serviceName }}</div>
+        <div><strong>الموظف:</strong> {{ selectedDetail.staffName || 'غير محدد' }}</div>
+        <div><strong>الفرع:</strong> {{ selectedDetail.branchName }}</div>
+        <div><strong>التاريخ:</strong> {{ selectedDetail.bookingDate | date:'dd/MM/yyyy' }}</div>
+        <div><strong>الوقت:</strong> {{ selectedDetail.startTime?.slice(0, 5) }} - {{ selectedDetail.endTime?.slice(0, 5) }}</div>
+        <div><strong>الحالة:</strong> <span class="badge" [class.badge--active]="selectedDetail.status === 'Confirmed' || selectedDetail.status === 'Completed'" [class.badge--inactive]="selectedDetail.status === 'Cancelled'">{{ statusLabel(selectedDetail.status ?? '') }}</span></div>
+        <div><strong>المبلغ:</strong> {{ selectedDetail.totalAmount }} ر.س</div>
+        @if (selectedDetail.customerNotes) { <div style="grid-column: span 2;"><strong>ملاحظات:</strong> {{ selectedDetail.customerNotes }}</div> }
+        @if (selectedDetail.cancellationReason) { <div style="grid-column: span 2;"><strong>سبب الإلغاء:</strong> {{ selectedDetail.cancellationReason }}</div> }
+      </div>
+      @if (selectedDetail.status === 'Pending') {
+        <footer style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+          <button (click)="confirmBooking(selectedDetail.id!)" [attr.aria-busy]="confirming">تأكيد الحجز</button>
+        </footer>
+      }
+      @if (selectedDetail.status === 'Confirmed') {
+        <footer style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+          <button (click)="completeBooking(selectedDetail.id!)" [attr.aria-busy]="completing">إكمال الحجز</button>
+        </footer>
+      }
+    </article>
+  }
+
+  @if (store.isLoading()) {
+    <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
+  } @else if (selectedBranchId && store.bookings().length === 0) {
+    <article style="text-align: center; padding: 3rem 0;"><h3>لا توجد حجوزات اليوم</h3></article>
+  } @else if (selectedBranchId) {
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      @for (b of store.bookings(); track b.id) {
+        <article style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; cursor: pointer;" (click)="viewDetail(b.id!)">
+          <div style="flex: 1;">
+            <strong>{{ b.serviceName }}</strong>
+            <small style="display: block; color: var(--pico-muted-color);">{{ b.bookingDate | date:'dd/MM' }} · {{ b.startTime?.slice(0, 5) }} - {{ b.endTime?.slice(0, 5) }}</small>
+          </div>
+          <span class="badge" [class.badge--active]="b.status === 'Confirmed' || b.status === 'Completed'" [class.badge--inactive]="b.status === 'Cancelled'">{{ statusLabel(b.status ?? '') }}</span>
+        </article>
+      }
+    </div>
+  } @else {
+    <article style="text-align: center; padding: 3rem 0;"><h3>اختر فرعًا لعرض الحجوزات</h3></article>
+  }
+</section>

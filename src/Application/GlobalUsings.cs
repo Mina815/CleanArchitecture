@@ -9,6 +9,7 @@ global using CleanArchitecture.Application.Common.Models;
 global using CleanArchitecture.Application.Common.Exceptions;
 global using CleanArchitecture.Application.Auth.DTOs;
 global using CleanArchitecture.Domain.Entities;
+global using StaffEntity = CleanArchitecture.Domain.Entities.Staff;
 global using CleanArchitecture.Domain.Enums;
 global using CleanArchitecture.Domain.Events;
 global using CleanArchitecture.Domain.Exceptions;

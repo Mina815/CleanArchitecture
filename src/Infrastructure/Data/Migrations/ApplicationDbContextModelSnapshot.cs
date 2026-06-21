@@ -83,6 +83,9 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OwnerId")
+                        .IsUnique();
+
                     b.ToTable("BeautyCenters");
                 });
 
@@ -582,6 +585,28 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                     b.ToTable("StaffMembers");
                 });
 
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.StaffService", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StaffId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StaffId", "ServiceId")
+                        .IsUnique();
+
+                    b.ToTable("StaffServices", (string)null);
+                });
+
             modelBuilder.Entity("CleanArchitecture.Domain.Entities.TimeOff", b =>
                 {
                     b.Property<int>("Id")
@@ -879,6 +904,15 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.StaffService", b =>
+                {
+                    b.HasOne("CleanArchitecture.Domain.Entities.Staff", null)
+                        .WithMany("StaffServices")
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("CleanArchitecture.Domain.Entities.TimeOff", b =>
                 {
                     b.HasOne("CleanArchitecture.Domain.Entities.Branch", null)
@@ -953,6 +987,11 @@ namespace CleanArchitecture.Infrastructure.Data.Migrations
                     b.Navigation("Branches");
 
                     b.Navigation("CenterImages");
+                });
+
+            modelBuilder.Entity("CleanArchitecture.Domain.Entities.Staff", b =>
+                {
+                    b.Navigation("StaffServices");
                 });
 #pragma warning restore 612, 618
         }

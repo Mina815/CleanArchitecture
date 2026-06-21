@@ -11,3 +11,4 @@ global using CleanArchitecture.Application.Centers.Queries.GetCenterById;
 global using CleanArchitecture.Application.Branches.Queries.GetCenterBranches;
 global using CleanArchitecture.Application.Services.Queries.GetCenterServices;
 global using CleanArchitecture.Application.Reviews.Queries.GetCenterReviews;
+global using CleanArchitecture.Application.Bookings.Queries.GetBookingById;

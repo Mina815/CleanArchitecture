@@ -1,0 +1,49 @@
+<section>
+  <header style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+    <h1 style="margin: 0;">إدارة الخدمات</h1>
+    <button (click)="openCreate()">إضافة خدمة</button>
+  </header>
+
+  @if (showForm) {
+    <article style="margin-bottom: 1.5rem;">
+      <h2>{{ editItem ? 'تعديل الخدمة' : 'إضافة خدمة جديدة' }}</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+        <label>الاسم (عربي) <input [(ngModel)]="formNameAr" required /></label>
+        <label>الاسم (إنجليزي) <input [(ngModel)]="formName" required /></label>
+        <label style="grid-column: span 2;">الوصف (عربي) <textarea [(ngModel)]="formDescriptionAr" rows="2"></textarea></label>
+        <label style="grid-column: span 2;">الوصف (إنجليزي) <textarea [(ngModel)]="formDescription" rows="2"></textarea></label>
+        <label>السعر <input type="number" [(ngModel)]="formPrice" min="0" step="0.01" /></label>
+        <label>المدة (دقائق) <input type="number" [(ngModel)]="formDurationMinutes" min="5" step="5" /></label>
+        <label>ترتيب العرض <input type="number" [(ngModel)]="formDisplayOrder" min="0" /></label>
+      </div>
+      <footer style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+        <button class="secondary" (click)="cancelForm()">إلغاء</button>
+        <button (click)="save()" [attr.aria-busy]="saving">{{ editItem ? 'حفظ' : 'إضافة' }}</button>
+      </footer>
+    </article>
+  }
+
+  @if (store.isLoading()) {
+    <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
+  } @else if (store.services().length === 0) {
+    <article style="text-align: center; padding: 3rem 0;">
+      <h3>لا توجد خدمات</h3>
+      <p>لم تقم بإضافة أي خدمات بعد.</p>
+    </article>
+  } @else {
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      @for (svc of store.services(); track svc.id) {
+        <article style="display: flex; align-items: center; gap: 1rem; padding: 1rem;">
+          <div style="flex: 1;">
+            <strong>{{ svc.nameAr || svc.name }}</strong>
+            <small style="color: var(--pico-muted-color); display: block;">{{ svc.price }} ر.س · {{ svc.durationMinutes }} دقيقة</small>
+          </div>
+          <div style="display: flex; gap: 0.35rem;">
+            <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="openEdit(svc)">تعديل</button>
+            <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="toggleActive(svc)">{{ svc.isActive ? 'تعطيل' : 'تفعيل' }}</button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

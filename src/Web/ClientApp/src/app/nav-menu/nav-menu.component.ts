@@ -13,6 +13,10 @@ export class NavMenuComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
+  hasProviderRole(): boolean {
+    return this.authService.hasRole('Provider');
+  }
+
   logout(event: Event): void {
     event.preventDefault();
     this.authService.logout().subscribe({

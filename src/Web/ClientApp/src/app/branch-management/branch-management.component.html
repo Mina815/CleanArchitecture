@@ -12,7 +12,7 @@
         <option [value]="center.id">{{ center.name || center.nameAr }}</option>
       }
     </select>
-    @if (selectedCenterId) {
+    @if (selectedCenterId && !selectedBranch) {
       <button (click)="openCreateForm()">
         إضافة فرع جديد
       </button>
@@ -56,7 +56,122 @@
     </article>
   }
 
-  @if (selectedCenterId && !showForm) {
+  @if (selectedBranch && manageSection) {
+    <article style="margin-bottom: 1.5rem;">
+      <header style="display: flex; align-items: center; justify-content: space-between;">
+        <hgroup style="margin: 0;">
+          <h2 style="margin: 0;">{{ selectedBranch.nameAr || selectedBranch.name }}</h2>
+          <p style="margin: 0; font-size: 0.85rem;">{{ manageSection === 'hours' ? 'إدارة ساعات العمل' : 'إدارة الإجازات' }}</p>
+        </hgroup>
+        <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="closeManagement()">
+          عودة
+        </button>
+      </header>
+
+      @if (manageSection === 'hours') {
+        <div style="margin-top: 1rem;">
+          @if (hoursLoading) {
+            <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
+          } @else {
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              @for (wh of workingHours; track wh.dayOfWeek; let i = $index) {
+                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 8px; background: var(--pico-card-background-color);">
+                  <strong style="min-width: 80px;">{{ dayNames[i] }}</strong>
+                  <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer; margin: 0;">
+                    <input type="checkbox" [(ngModel)]="wh.isClosed" style="width: auto;" />
+                    مغلق
+                  </label>
+                  @if (!wh.isClosed) {
+                    <label style="margin: 0;">
+                      من
+                      <input type="time" [value]="wh.openTime?.slice(0, 5)" (change)="wh.openTime = $any($event.target).value + ':00'" style="width: 110px;" />
+                    </label>
+                    <label style="margin: 0;">
+                      إلى
+                      <input type="time" [value]="wh.closeTime?.slice(0, 5)" (change)="wh.closeTime = $any($event.target).value + ':00'" style="width: 110px;" />
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+            <footer style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+              <button (click)="saveWorkingHours()" [attr.aria-busy]="hoursSaving">حفظ ساعات العمل</button>
+            </footer>
+          }
+        </div>
+      }
+
+      @if (manageSection === 'timeoff') {
+        <div style="margin-top: 1rem;">
+          @if (showTimeOffForm) {
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; background: var(--pico-card-background-color); border-radius: 8px;">
+              <label>من تاريخ
+                <input type="date" [(ngModel)]="timeOffFromDate" required />
+              </label>
+              <label>إلى تاريخ
+                <input type="date" [(ngModel)]="timeOffToDate" />
+              </label>
+              <label>من وقت
+                <input type="time" [(ngModel)]="timeOffFromTime" />
+              </label>
+              <label>إلى وقت
+                <input type="time" [(ngModel)]="timeOffToTime" />
+              </label>
+              <label>السبب
+                <input [(ngModel)]="timeOffReason" placeholder="سبب الإجازة (اختياري)" />
+              </label>
+              <label>النوع
+                <select [(ngModel)]="timeOffType">
+                  <option [value]="0">إجازة رسمية</option>
+                  <option [value]="1">إجازة سنوية</option>
+                  <option [value]="2">إجازة مرضية</option>
+                  <option [value]="3">أخرى</option>
+                </select>
+              </label>
+              <div style="grid-column: span 2; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <button class="secondary" (click)="cancelTimeOffForm()">إلغاء</button>
+                <button (click)="saveTimeOff()" [attr.aria-busy]="timeOffSaving">إضافة إجازة</button>
+              </div>
+            </div>
+          } @else {
+            <button style="margin-bottom: 1rem;" (click)="openTimeOffForm()">إضافة إجازة</button>
+          }
+
+          @if (timeOffsLoading) {
+            <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
+          } @else if (timeOffs.length === 0) {
+            <p style="text-align: center; padding: 2rem 0; color: var(--pico-muted-color);">لا توجد إجازات مسجلة</p>
+          } @else {
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              @for (toff of timeOffs; track toff.id) {
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-radius: 8px; background: var(--pico-card-background-color);">
+                  <div>
+                    <strong>{{ toff.fromDate | date:'dd/MM/yyyy' }} - {{ toff.toDate | date:'dd/MM/yyyy' }}</strong>
+                    @if (toff.fromTime) {
+                      <span> · {{ toff.fromTime?.slice(0, 5) }} - {{ toff.toTime?.slice(0, 5) }}</span>
+                    }
+                    @if (toff.type !== undefined) {
+                      <span> · 
+                        @if (toff.type === 0) {إجازة رسمية}
+                        @else if (toff.type === 1) {إجازة سنوية}
+                        @else if (toff.type === 2) {إجازة مرضية}
+                        @else {أخرى}
+                      </span>
+                    }
+                    @if (toff.reason) {
+                      <br /><small>{{ toff.reason }}</small>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </article>
+  }
+
+  @if (selectedCenterId && !showForm && !selectedBranch) {
     @if (loading) {
       <article style="text-align: center; padding: 3rem 0;">
         <p>جاري التحميل...</p>
@@ -97,6 +212,12 @@
               </button>
               <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="toggleActive(branch)">
                 {{ branch.isActive ? 'تعطيل' : 'تفعيل' }}
+              </button>
+              <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="selectBranch(branch, 'hours')">
+                ساعات العمل
+              </button>
+              <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="selectBranch(branch, 'timeoff')">
+                الإجازات
               </button>
             </div>
           </article>

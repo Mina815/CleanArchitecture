@@ -13,11 +13,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
 {
     private readonly IAuthService _authService;
     private readonly IJwtService _jwtService;
+    private readonly IApplicationDbContext _context;
 
-    public RegisterCommandHandler(IAuthService authService, IJwtService jwtService)
+    public RegisterCommandHandler(IAuthService authService, IJwtService jwtService, IApplicationDbContext context)
     {
         _authService = authService;
         _jwtService = jwtService;
+        _context = context;
     }
 
     public async Task<AuthResult> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -30,6 +32,17 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
 
         var user = await _authService.CreateUserAsync(
             request.Email, request.Password, request.Name, request.Phone, roleName);
+
+        if (request.Role == UserRole.Provider)
+        {
+            _context.BeautyCenters.Add(new BeautyCenter
+            {
+                OwnerId = user.Id,
+                Name = string.Empty,
+                NameAr = string.Empty
+            });
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 
         var tokens = await _jwtService.GenerateTokensAsync(user.Id, roleName);
 

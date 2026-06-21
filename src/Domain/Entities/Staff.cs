@@ -8,4 +8,5 @@ public class Staff : BaseAuditableEntity
     public string? ImageUrl { get; set; }
     public string? Specialization { get; set; }
     public bool IsActive { get; set; } = true;
+    public ICollection<StaffService> StaffServices { get; set; } = new List<StaffService>();
 }

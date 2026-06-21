@@ -10,6 +10,7 @@ public class CenterDetailDto
     public string? LogoUrl { get; init; }
     public double AverageRating { get; init; }
     public int TotalReviews { get; init; }
+    public bool IsProfileComplete { get; init; }
     public List<BranchDto> Branches { get; init; } = new();
     public List<string> Images { get; init; } = new();
 

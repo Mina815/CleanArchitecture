@@ -2,6 +2,7 @@ using CleanArchitecture.Application.Centers.Commands.CreateCenter;
 using CleanArchitecture.Application.Centers.Commands.UpdateCenter;
 using CleanArchitecture.Application.Centers.Queries.GetCenterById;
 using CleanArchitecture.Application.Centers.Queries.GetCenters;
+using CleanArchitecture.Application.Centers.Queries.GetMyCenter;
 
 namespace CleanArchitecture.Web.Endpoints;
 
@@ -10,6 +11,7 @@ public class Centers : IEndpointGroup
     public static void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet(GetCenters);
+        groupBuilder.MapGet(GetMyCenterEndpoint, "mine");
         groupBuilder.MapGet(GetCenterById, "{id}");
         groupBuilder.MapPost(CreateCenter);
         groupBuilder.MapPut(UpdateCenter, "{id}");
@@ -18,6 +20,12 @@ public class Centers : IEndpointGroup
     public static async Task<Ok<PaginatedList<CenterDto>>> GetCenters(ISender sender, [AsParameters] GetCentersQuery query)
     {
         var result = await sender.Send(query);
+        return TypedResults.Ok(result);
+    }
+
+    public static async Task<Ok<CenterDetailDto>> GetMyCenterEndpoint(ISender sender)
+    {
+        var result = await sender.Send(new GetMyCenterQuery());
         return TypedResults.Ok(result);
     }
 

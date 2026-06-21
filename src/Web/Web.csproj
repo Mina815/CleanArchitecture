@@ -10,6 +10,10 @@
     <!--#endif-->
   </PropertyGroup>
 
+  <Target Name="InlineIFormFileRefs" AfterTargets="GenerateOpenApiDocuments" Condition="Exists('$(OpenApiDocumentsDirectory)/v1.json')">
+    <Exec Command="powershell -NoProfile -Command &quot;(Get-Content '$(OpenApiDocumentsDirectory)/v1.json' -Raw) -replace '\&quot;\$ref\&quot;: \&quot;#/components/schemas/IFormFile\&quot;', '\&quot;type\&quot;: \&quot;string\&quot;, \&quot;format\&quot;: \&quot;binary\&quot;' | Set-Content '$(OpenApiDocumentsDirectory)/v1.json' -NoNewline&quot;" />
+  </Target>
+
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />

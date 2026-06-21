@@ -1,3 +1,4 @@
+using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Infrastructure.Data;
 using CleanArchitecture.Infrastructure.Services;
 using Scalar.AspNetCore;
@@ -9,6 +10,9 @@ builder.AddKeyVaultIfConfigured();
 builder.AddApplicationServices();
 builder.AddInfrastructureServices();
 builder.AddWebServices();
+builder.Services.AddScoped<IFileStorageService>(_ =>
+    new LocalFileStorageService(builder.Environment.WebRootPath
+        ?? Path.Combine(builder.Environment.ContentRootPath, "wwwroot")));
 
 var app = builder.Build();
 

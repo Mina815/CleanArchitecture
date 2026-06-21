@@ -1,0 +1,45 @@
+<section>
+  <header style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+    <h1 style="margin: 0;">الملف الشخصي للمركز</h1>
+    @if (!store.isProfileComplete()) {
+      <span class="badge badge--inactive">غير مكتمل</span>
+    } @else {
+      <span class="badge badge--active">مكتمل</span>
+    }
+  </header>
+
+  @if (!store.isProfileComplete()) {
+    <article style="background: var(--pico-del-color, #d32f2f); color: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+      <strong>الملف الشخصي غير مكتمل</strong>
+      <p style="margin: 0.25rem 0 0;">يرجى إضافة الاسم والوصف والشعار لإكمال الملف. بعض الميزات قد لا تكون متاحة حتى يتم اكتماله.</p>
+    </article>
+  }
+
+  <article>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+      <label>الاسم (عربي)
+        <input [(ngModel)]="name" placeholder="اسم المركز بالعربية" />
+      </label>
+      <label>الاسم (إنجليزي)
+        <input [(ngModel)]="name" placeholder="Center name in English" />
+      </label>
+      <label style="grid-column: span 2;">الوصف (عربي)
+        <textarea [(ngModel)]="descriptionAr" placeholder="وصف المركز بالعربية" rows="3"></textarea>
+      </label>
+      <label style="grid-column: span 2;">الوصف (إنجليزي)
+        <textarea [(ngModel)]="description" placeholder="Description in English" rows="3"></textarea>
+      </label>
+      <label style="grid-column: span 2;">الشعار
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          @if (logoUrl) {
+            <img [src]="logoUrl" alt="Logo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;" />
+          }
+          <input type="file" accept="image/*" (change)="onFileSelected($event)" [attr.aria-busy]="uploadSaving" />
+        </div>
+      </label>
+    </div>
+    <footer style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+      <button (click)="save()" [attr.aria-busy]="saving">حفظ التغييرات</button>
+    </footer>
+  </article>
+</section>

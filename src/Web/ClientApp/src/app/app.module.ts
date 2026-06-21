@@ -14,11 +14,15 @@ import { BookingComponent } from './booking/booking.component';
 import { MyBookingsComponent } from './my-bookings/my-bookings.component';
 import { ProviderDashboardComponent } from './provider-dashboard/provider-dashboard.component';
 import { BranchManagementComponent } from './branch-management/branch-management.component';
+import { CenterProfileComponent } from './center-profile/center-profile.component';
+import { ServiceManagementComponent } from './service-management/service-management.component';
+import { BookingManagementComponent } from './booking-management/booking-management.component';
 import { API_BASE_URL } from './web-api-client';
 import { AuthorizeInterceptor } from 'src/api-authorization/authorize.interceptor';
 import { LoginComponent } from 'src/api-authorization/login/login.component';
 import { RegisterComponent } from 'src/api-authorization/register/register.component';
 import { AuthGuard } from 'src/api-authorization/auth.guard';
+import { ProviderGuard } from './provider.guard';
 export function getApiBaseUrl(): string {
   const url = document.getElementsByTagName('base')[0].href;
   return url.endsWith('/') ? url.slice(0, -1) : url;
@@ -36,7 +40,10 @@ export function getApiBaseUrl(): string {
         BookingComponent,
         MyBookingsComponent,
         ProviderDashboardComponent,
-        BranchManagementComponent
+        BranchManagementComponent,
+        CenterProfileComponent,
+        ServiceManagementComponent,
+        BookingManagementComponent
     ],
     bootstrap: [AppComponent],
     imports: [
@@ -50,8 +57,11 @@ export function getApiBaseUrl(): string {
             { path: 'centers/:id', component: CenterDetailComponent },
             { path: 'book/:centerId', component: BookingComponent, canActivate: [AuthGuard] },
             { path: 'my-bookings', component: MyBookingsComponent, canActivate: [AuthGuard] },
-            { path: 'provider/dashboard', component: ProviderDashboardComponent, canActivate: [AuthGuard] },
-            { path: 'provider/branches', component: BranchManagementComponent, canActivate: [AuthGuard] }
+            { path: 'provider/dashboard', component: ProviderDashboardComponent, canActivate: [ProviderGuard] },
+            { path: 'provider/branches', component: BranchManagementComponent, canActivate: [ProviderGuard] },
+            { path: 'provider/center-profile', component: CenterProfileComponent, canActivate: [ProviderGuard] },
+            { path: 'provider/services', component: ServiceManagementComponent, canActivate: [ProviderGuard] },
+            { path: 'provider/bookings', component: BookingManagementComponent, canActivate: [ProviderGuard] }
         ])
     ],
     providers: [

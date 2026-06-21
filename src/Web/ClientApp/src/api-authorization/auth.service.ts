@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { AuthClient, LoginCommand, RegisterCommand, AuthResult } from '../app/web-api-client';
 
 @Injectable({
@@ -23,6 +23,24 @@ export class AuthService {
     );
   }
 
+  getRoles(): string[] {
+    const token = localStorage.getItem('access_token');
+    if (!token) return [];
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+                   payload['role'] ||
+                   payload['roles'];
+      return role ? (Array.isArray(role) ? role : [role]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  hasRole(role: string): boolean {
+    return this.getRoles().includes(role);
+  }
+
   login(email: string, password: string): Observable<AuthResult> {
     return this.authClient.login(new LoginCommand({ email, password })).pipe(
       tap(result => {
@@ -35,8 +53,8 @@ export class AuthService {
     );
   }
 
-  register(email: string, password: string, name: string, phone?: string): Observable<AuthResult> {
-    return this.authClient.register(new RegisterCommand({ email, password, name, phone }));
+  register(email: string, password: string, name: string, phone?: string, role?: number): Observable<AuthResult> {
+    return this.authClient.register(new RegisterCommand({ email, password, name, phone, role }));
   }
 
   logout(): Observable<void> {

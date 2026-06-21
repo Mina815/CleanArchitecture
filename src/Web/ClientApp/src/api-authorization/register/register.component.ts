@@ -15,6 +15,7 @@ export class RegisterComponent {
   email = '';
   password = '';
   phone = '';
+  role = 0;
   nameTouched = false;
   emailTouched = false;
   passwordTouched = false;
@@ -35,7 +36,7 @@ export class RegisterComponent {
     this.passwordTouched = true;
     if (!this.nameValid || !this.emailValid || !this.passwordValid) return;
     try {
-      await firstValueFrom(this.authService.register(this.email, this.password, this.name, this.phone || undefined));
+      await firstValueFrom(this.authService.register(this.email, this.password, this.name, this.phone || undefined, this.role));
       await this.router.navigate(['/login']);
     } catch {
       this.error = 'Registration failed. Please try again.';

@@ -6,9 +6,10 @@ public interface IApplicationDbContext
 {
     DbSet<BeautyCenter> BeautyCenters { get; }
     DbSet<Branch> Branches { get; }
-    DbSet<Domain.Entities.Service> Services { get; }
+    DbSet<Service> Services { get; }
     DbSet<ServiceCategory> ServiceCategories { get; }
-    DbSet<Staff> StaffMembers { get; }
+    DbSet<StaffEntity> StaffMembers { get; }
+    DbSet<StaffService> StaffServices { get; }
     DbSet<WorkingHour> WorkingHours { get; }
     DbSet<TimeOff> TimeOffs { get; }
     DbSet<Booking> Bookings { get; }

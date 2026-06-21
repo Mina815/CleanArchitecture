@@ -31,6 +31,11 @@
     <label for="phone">Phone (optional)</label>
     <input type="tel" id="phone" name="phone" [(ngModel)]="phone"
       autocomplete="tel" />
+    <label for="role">I want to</label>
+    <select id="role" name="role" [(ngModel)]="role">
+      <option [value]="0">Book beauty services (Customer)</option>
+      <option [value]="1">Manage my beauty center (Provider)</option>
+    </select>
     <button type="submit">Register</button>
     <p style="margin-top: 1rem">Already have an account? <a [routerLink]="['/login']">Log in</a></p>
   </form>

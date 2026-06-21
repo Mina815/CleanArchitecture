@@ -10,6 +10,7 @@ public class BeautyCenterConfiguration : IEntityTypeConfiguration<BeautyCenter>
         builder.Property(x => x.DescriptionAr).HasMaxLength(2000);
         builder.Property(x => x.LogoUrl).HasMaxLength(500);
         builder.Property(x => x.OwnerId).HasMaxLength(450).IsRequired();
+        builder.HasIndex(x => x.OwnerId).IsUnique();
 
         builder.HasMany(x => x.Branches)
             .WithOne()

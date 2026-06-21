@@ -1,6 +1,7 @@
 using Azure.Identity;
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Infrastructure.Data;
+using CleanArchitecture.Web.Infrastructure;
 using CleanArchitecture.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,6 +29,7 @@ public static class DependencyInjection
         {
             options.AddOperationTransformer<ApiExceptionOperationTransformer>();
             options.AddOperationTransformer<IdentityApiOperationTransformer>();
+            options.AddDocumentTransformer<IFormFileDocumentTransformer>();
 #if (UseApiOnly)
             options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 #endif

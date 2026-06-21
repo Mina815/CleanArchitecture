@@ -12,6 +12,15 @@ public class BeautyCenter : BaseAuditableEntity
     public bool IsVerified { get; set; }
     public double AverageRating { get; set; }
     public int TotalReviews { get; set; }
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public bool IsProfileComplete =>
+        !string.IsNullOrWhiteSpace(Name) &&
+        !string.IsNullOrWhiteSpace(NameAr) &&
+        !string.IsNullOrWhiteSpace(Description) &&
+        !string.IsNullOrWhiteSpace(DescriptionAr) &&
+        !string.IsNullOrWhiteSpace(LogoUrl);
+
     public ICollection<Branch> Branches { get; set; } = new List<Branch>();
     public ICollection<CenterImage> CenterImages { get; set; } = new List<CenterImage>();
 }
