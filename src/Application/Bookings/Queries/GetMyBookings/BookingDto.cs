@@ -13,6 +13,7 @@ public class BookingDto
     public TimeSpan EndTime { get; init; }
     public string Status { get; init; } = string.Empty;
     public decimal TotalAmount { get; init; }
+    public DateTimeOffset Created { get; init; }
 
     private class Mapping : Profile
     {
@@ -22,7 +23,8 @@ public class BookingDto
                 .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
                 .ForMember(d => d.CenterName, opt => opt.Ignore())
                 .ForMember(d => d.BranchName, opt => opt.Ignore())
-                .ForMember(d => d.ServiceName, opt => opt.Ignore());
+                .ForMember(d => d.ServiceName, opt => opt.Ignore())
+                .ForMember(d => d.Created, opt => opt.MapFrom(s => s.Created));
         }
     }
 }

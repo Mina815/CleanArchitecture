@@ -10,6 +10,30 @@
     </select>
   </div>
 
+  @if (selectedBranchId) {
+    <div style="display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 1rem; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 120px;">
+        <label style="font-size: 0.8rem;">من تاريخ</label>
+        <input type="date" [value]="dateFrom" (input)="dateFrom = $any($event.target).value; loadBranchBookings()" />
+      </div>
+      <div style="flex: 1; min-width: 120px;">
+        <label style="font-size: 0.8rem;">إلى تاريخ</label>
+        <input type="date" [value]="dateTo" (input)="dateTo = $any($event.target).value; loadBranchBookings()" />
+      </div>
+      <div style="flex: 1; min-width: 120px;">
+        <label style="font-size: 0.8rem;">الحالة</label>
+        <select [value]="selectedStatus" (change)="selectedStatus = $any($event.target).value; loadBranchBookings()">
+          <option value="">الكل</option>
+          <option value="Pending">قيد الانتظار</option>
+          <option value="Confirmed">مؤكد</option>
+          <option value="Completed">مكتمل</option>
+          <option value="Cancelled">ملغي</option>
+          <option value="NoShow">لم يحضر</option>
+        </select>
+      </div>
+    </div>
+  }
+
   @if (selectedDetail) {
     <article style="margin-bottom: 1rem;">
       <header style="display: flex; justify-content: space-between; align-items: center;">
@@ -46,14 +70,17 @@
   @if (loading) {
     <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
   } @else if (selectedBranchId && bookings.length === 0) {
-    <article style="text-align: center; padding: 3rem 0;"><h3>لا توجد حجوزات اليوم</h3></article>
+    <article style="text-align: center; padding: 3rem 0;"><h3>لا توجد حجوزات</h3></article>
   } @else if (selectedBranchId) {
     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
       @for (b of bookings; track b.id) {
         <article style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; cursor: pointer;" (click)="viewDetail(b.id!)">
           <div style="flex: 1;">
             <strong>{{ b.serviceName }}</strong>
-            <small style="display: block; color: var(--pico-muted-color);">{{ b.bookingDate | date:'dd/MM' }} · {{ b.startTime?.slice(0, 5) }} - {{ b.endTime?.slice(0, 5) }}</small>
+            <small style="display: block; color: var(--pico-muted-color);">
+              {{ b.bookingDate | date:'dd/MM' }} · {{ b.startTime?.slice(0, 5) }} - {{ b.endTime?.slice(0, 5) }}
+              @if (b.created) { · تم الإنشاء: {{ formatDateTime(b.created) }} }
+            </small>
           </div>
           <span class="badge" [class.badge--active]="b.status === 'Confirmed' || b.status === 'Completed'" [class.badge--inactive]="b.status === 'Cancelled'">{{ statusLabel(b.status ?? '') }}</span>
         </article>

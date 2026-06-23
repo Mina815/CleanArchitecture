@@ -4,7 +4,7 @@ using CleanArchitecture.Application.Bookings.Commands.ConfirmBooking;
 using CleanArchitecture.Application.Bookings.Commands.CreateBooking;
 using CleanArchitecture.Application.Bookings.Queries.GetAvailableSlots;
 using CleanArchitecture.Application.Bookings.Queries.GetBookingById;
-using CleanArchitecture.Application.Bookings.Queries.GetBranchBookingsToday;
+using CleanArchitecture.Application.Bookings.Queries.GetBranchBookings;
 using CleanArchitecture.Application.Bookings.Queries.GetMyBookings;
 
 namespace CleanArchitecture.Web.Endpoints;
@@ -15,7 +15,7 @@ public class Bookings : IEndpointGroup
     {
         groupBuilder.MapGet(GetMyBookings);
         groupBuilder.MapGet(GetBookingById, "{id}");
-        groupBuilder.MapGet(GetBranchBookingsToday, "branch/{branchId}/today");
+        groupBuilder.MapGet(GetBranchBookings, "branch/{branchId}/bookings");
         groupBuilder.MapPost(CreateBooking);
         groupBuilder.MapGet(GetAvailableSlots, "slots");
         groupBuilder.MapPost(ConfirmBooking, "{id}/confirm");
@@ -35,9 +35,9 @@ public class Bookings : IEndpointGroup
         return TypedResults.Ok(result);
     }
 
-    public static async Task<Ok<List<BookingDto>>> GetBranchBookingsToday(ISender sender, int branchId)
+    public static async Task<Ok<List<BookingDto>>> GetBranchBookings(ISender sender, [AsParameters] GetBranchBookingsQuery query)
     {
-        var result = await sender.Send(new GetBranchBookingsTodayQuery(branchId));
+        var result = await sender.Send(query);
         return TypedResults.Ok(result);
     }
 

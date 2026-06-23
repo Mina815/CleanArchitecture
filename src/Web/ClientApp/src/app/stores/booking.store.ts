@@ -24,7 +24,8 @@ export class BookingStore {
 
   loadBranchToday(branchId: number): Observable<BookingDto[]> {
     this.listState.set('loading');
-    return this.bookingsClient.getBranchBookingsToday(branchId).pipe(
+    const today = new Date();
+    return this.bookingsClient.getBranchBookings(branchId, today, today, undefined, false).pipe(
       tap({
         next: items => { this.listData.set(items ?? []); this.listState.set('success'); },
         error: () => this.listState.set('error')

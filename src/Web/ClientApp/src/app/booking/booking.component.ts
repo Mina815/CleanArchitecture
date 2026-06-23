@@ -70,6 +70,13 @@ export class BookingComponent implements OnInit, OnDestroy {
     this.error = '';
   }
 
+  changeStep(step: number): void {
+    this.currentStep = step;
+    this.error = '';
+    if (step <= 2) { this.selectedService = null; this.selectedDate = this.todayString(); this.selectedTime = ''; this.timeSlots = []; }
+    if (step <= 3) { this.selectedTime = ''; this.timeSlots = []; }
+  }
+
   selectService(service: ServiceDto): void {
     this.selectedService = service;
     this.currentStep = 3;

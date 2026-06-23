@@ -4,7 +4,7 @@ public record GetAvailableSlotsQuery : IRequest<List<TimeSlotDto>>
 {
     public int BranchId { get; init; }
     public int ServiceId { get; init; }
-    public DateOnly Date { get; init; }
+    public DateTime Date { get; init; }
     public int? StaffId { get; init; }
 }
 
@@ -21,11 +21,13 @@ public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQu
 
     public async Task<List<TimeSlotDto>> Handle(GetAvailableSlotsQuery request, CancellationToken cancellationToken)
     {
+        var bookingDate = DateOnly.FromDateTime(request.Date.Date);
+
         var service = await _context.Services
             .FindAsync([request.ServiceId], cancellationToken);
         Guard.Against.NotFound(request.ServiceId, service);
 
-        var dayOfWeek = request.Date.DayOfWeek;
+        var dayOfWeek = bookingDate.DayOfWeek;
         var workingHour = await _context.WorkingHours
             .FirstOrDefaultAsync(w => w.BranchId == request.BranchId
                                    && w.DayOfWeek == dayOfWeek, cancellationToken);
@@ -35,15 +37,15 @@ public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQu
 
         var existingBookings = await _context.Bookings
             .Where(b => b.BranchId == request.BranchId
-                     && b.BookingDate == request.Date
+                     && b.BookingDate == bookingDate
                      && b.Status != BookingStatus.Cancelled
                      && b.Status != BookingStatus.Completed)
             .ToListAsync(cancellationToken);
 
         var timeOffs = await _context.TimeOffs
             .Where(t => t.BranchId == request.BranchId
-                     && t.FromDate <= request.Date
-                     && t.ToDate >= request.Date)
+                     && t.FromDate <= bookingDate
+                     && t.ToDate >= bookingDate)
             .ToListAsync(cancellationToken);
 
         if (request.StaffId.HasValue)

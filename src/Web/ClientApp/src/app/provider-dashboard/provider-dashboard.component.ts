@@ -78,7 +78,8 @@ export class ProviderDashboardComponent implements OnInit, OnDestroy {
   loadBranchBookings(branchId: number): void {
     this.loading = true;
     this.cdr.detectChanges();
-    this.bookingsClient.getBranchBookingsToday(branchId).pipe(takeUntil(this.destroy$)).subscribe({
+    const today = new Date();
+    this.bookingsClient.getBranchBookings(branchId, today, today, undefined, false).pipe(takeUntil(this.destroy$)).subscribe({
       next: items => {
         this.todayBookings = items ?? [];
         this.computeStats();

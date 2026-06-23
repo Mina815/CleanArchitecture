@@ -26,7 +26,7 @@ public class GetMyBookingsQueryHandler : IRequestHandler<GetMyBookingsQuery, Lis
 
         if (request.Upcoming.HasValue)
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateOnly.FromDateTime(DateTime.Now);
 
             if (request.Upcoming.Value)
                 query = query.Where(b => b.BookingDate >= today

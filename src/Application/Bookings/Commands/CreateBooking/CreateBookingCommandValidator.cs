@@ -9,7 +9,7 @@ public class CreateBookingCommandValidator : AbstractValidator<CreateBookingComm
         RuleFor(v => v.ServiceId).NotEmpty();
         RuleFor(v => v.BookingDate)
             .NotEmpty()
-            .Must(d => d >= DateOnly.FromDateTime(DateTime.UtcNow))
+            .Must(d => d >= DateOnly.FromDateTime(DateTime.Now))
             .WithMessage("Booking date must be today or in the future.");
         RuleFor(v => v.StartTime)
             .NotEmpty();

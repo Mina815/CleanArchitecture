@@ -21,6 +21,10 @@ export class BookingManagementComponent implements OnInit, OnDestroy {
   confirming = false;
   completing = false;
 
+  dateFrom: string = '';
+  dateTo: string = '';
+  selectedStatus: string = '';
+
   constructor(
     private branchesClient: BranchesClient,
     private bookingsClient: BookingsClient,
@@ -64,24 +68,29 @@ export class BookingManagementComponent implements OnInit, OnDestroy {
     this.selectedBranchId = branchId;
     this.selectedDetail = null;
     this.cdr.detectChanges();
-    this.loadBranchBookings(branchId);
+    this.loadBranchBookings();
     this.hubService.connect('', branchId);
   }
 
-  loadBranchBookings(branchId: number): void {
+  loadBranchBookings(): void {
+    if (!this.selectedBranchId) return;
     this.loading = true;
     this.cdr.detectChanges();
-    this.bookingsClient.getBranchBookingsToday(branchId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: items => {
-        this.bookings = items ?? [];
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    });
+    const dateFrom = this.dateFrom ? new Date(this.dateFrom) : undefined;
+    const dateTo = this.dateTo ? new Date(this.dateTo) : undefined;
+    const status = this.selectedStatus || undefined;
+    this.bookingsClient.getBranchBookings(this.selectedBranchId, dateFrom, dateTo, status, true)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: items => {
+          this.bookings = items ?? [];
+          this.loading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   viewDetail(id: number): void {
@@ -102,7 +111,7 @@ export class BookingManagementComponent implements OnInit, OnDestroy {
       next: () => {
         this.confirming = false;
         this.cdr.detectChanges();
-        if (this.selectedBranchId) this.loadBranchBookings(this.selectedBranchId);
+        if (this.selectedBranchId) this.loadBranchBookings();
         if (this.selectedDetail?.id === id) this.viewDetail(id);
       },
       error: () => { this.confirming = false; this.cdr.detectChanges(); }
@@ -117,7 +126,7 @@ export class BookingManagementComponent implements OnInit, OnDestroy {
       next: () => {
         this.completing = false;
         this.cdr.detectChanges();
-        if (this.selectedBranchId) this.loadBranchBookings(this.selectedBranchId);
+        if (this.selectedBranchId) this.loadBranchBookings();
         if (this.selectedDetail?.id === id) this.viewDetail(id);
       },
       error: () => { this.completing = false; this.cdr.detectChanges(); }
@@ -127,5 +136,11 @@ export class BookingManagementComponent implements OnInit, OnDestroy {
   statusLabel(s: string): string {
     const map: Record<string, string> = { Pending: 'قيد الانتظار', Confirmed: 'مؤكد', Cancelled: 'ملغي', Completed: 'مكتمل', NoShow: 'لم يحضر' };
     return map[s] || s;
+  }
+
+  formatDateTime(d: Date | undefined): string {
+    if (!d) return '';
+    const date = new Date(d);
+    return date.toLocaleDateString('ar-SA') + ' ' + date.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
   }
 }

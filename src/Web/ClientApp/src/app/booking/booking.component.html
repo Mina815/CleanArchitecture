@@ -1,4 +1,4 @@
-<section class="booking-wizard">
+<section>
   <header>
     <hgroup>
       <h1>Book Appointment</h1>
@@ -6,187 +6,139 @@
         <p>{{ center.name }} — {{ center.nameAr }}</p>
       }
     </hgroup>
-
-    <nav class="step-indicator">
-      @for (step of [1,2,3,4]; track step) {
-        @if (step > 1) { <span class="step-line" [class.active]="currentStep >= step"></span> }
-        <button class="step-circle" [class.active]="currentStep >= step" [class.current]="currentStep === step" disabled>
-          @if (currentStep > step) {
-            <lucide-icon name="check-circle" [size]="18" [strokeWidth]="2"></lucide-icon>
-          } @else {
-            <span>{{ step }}</span>
-          }
-        </button>
-      }
-    </nav>
   </header>
 
   @if (error) {
-    <article class="error-message">
+    <article style="margin-bottom: 1rem;">
       <p>{{ error }}</p>
     </article>
   }
 
-  @if (loading && currentStep < 4) {
-    <section class="loading-state">
-      <lucide-icon name="loader" [size]="32" [strokeWidth]="2" class="spinner"></lucide-icon>
-      <p>Loading...</p>
-    </section>
-  }
-
   @if (!loading) {
-    @if (currentStep === 1) {
-      <section class="step-content">
-        <h2>Select Branch</h2>
-        <div class="grid-2">
-          @for (branch of branches; track branch.id) {
-            <article class="select-card" [class.selected]="selectedBranch?.id === branch.id" (click)="selectBranch(branch)">
-              <header>
-                <h3>{{ branch.name }}</h3>
-                @if (branch.nameAr) { <small>{{ branch.nameAr }}</small> }
-              </header>
-              <p><lucide-icon name="map-pin" [size]="14" [strokeWidth]="2"></lucide-icon> {{ branch.address }}{{ branch.city ? ', ' + branch.city : '' }}</p>
-              @if (branch.phone) {
-                <p><lucide-icon name="clock" [size]="14" [strokeWidth]="2"></lucide-icon> {{ branch.phone }}</p>
-              }
-            </article>
-          }
-        </div>
-      </section>
-    }
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
 
-    @if (currentStep === 2) {
-      <section class="step-content">
-        <h2>Select Service</h2>
-        <div class="grid-2">
-          @for (service of services; track service.id) {
-            <article class="select-card" [class.selected]="selectedService?.id === service.id" (click)="selectService(service)">
-              <header>
-                <h3>{{ service.name }}</h3>
-                @if (service.nameAr) { <small>{{ service.nameAr }}</small> }
-              </header>
-              <div class="service-details">
-                <span class="price">{{ service.price | number }} EGP</span>
-                <span class="duration">{{ service.durationMinutes }} min</span>
-              </div>
-            </article>
-          }
-        </div>
-      </section>
-    }
-
-    @if (currentStep === 3) {
-      <section class="step-content">
-        <h2>Select Date & Time</h2>
-
-        <div class="date-picker">
-          @for (d of getAvailableDates(); track d.date) {
-            <button class="date-card" [class.selected]="selectedDate === d.date" (click)="selectDate(d.date)">
-              <span class="day-name">{{ d.dayName }}</span>
-              <span class="day-number">{{ d.dayNumber }}</span>
-              <span class="month">{{ d.month }}</span>
-            </button>
-          }
-        </div>
-
-        @if (loading) {
-          <div class="loading-state">
-            <lucide-icon name="loader" [size]="24" [strokeWidth]="2" class="spinner"></lucide-icon>
-            <p>Loading available times...</p>
-          </div>
-        } @else {
-          <div class="time-slots">
-            @if (timeSlots.length === 0) {
-              <p class="no-slots">No available time slots for this date.</p>
-            }
-            @for (slot of timeSlots; track slot.startTime) {
-              <button class="time-slot" [class.selected]="selectedTime === slot.startTime"
-                [class.available]="slot.isAvailable" [disabled]="!slot.isAvailable" (click)="slot.isAvailable && selectTime(slot)">
-                {{ slot.startTime }}
-              </button>
-            }
-          </div>
-        }
-      </section>
-    }
-
-    @if (currentStep === 4) {
-      <section class="step-content">
-        <h2>Confirm Booking</h2>
-        <article class="summary-card">
-          <div class="summary-row">
-            <lucide-icon name="map-pin" [size]="18" [strokeWidth]="2"></lucide-icon>
-            <div>
-              <small>Center</small>
-              <p>{{ center?.name }}</p>
-            </div>
-          </div>
-          <div class="summary-row">
-            <lucide-icon name="map-pin" [size]="18" [strokeWidth]="2"></lucide-icon>
-            <div>
-              <small>Branch</small>
-              <p>{{ selectedBranch?.name }} — {{ selectedBranch?.address }}</p>
-            </div>
-          </div>
-          <div class="summary-row">
-            <lucide-icon name="sparkles" [size]="18" [strokeWidth]="2"></lucide-icon>
-            <div>
-              <small>Service</small>
-              <p>{{ selectedService?.name }} ({{ selectedService?.durationMinutes }} min)</p>
-            </div>
-          </div>
-          <div class="summary-row">
-            <lucide-icon name="calendar" [size]="18" [strokeWidth]="2"></lucide-icon>
-            <div>
-              <small>Date</small>
-              <p>{{ selectedDate }}</p>
-            </div>
-          </div>
-          <div class="summary-row">
-            <lucide-icon name="clock" [size]="18" [strokeWidth]="2"></lucide-icon>
-            <div>
-              <small>Time</small>
-              <p>{{ selectedTime }}</p>
-            </div>
-          </div>
-          <div class="summary-row total">
-            <lucide-icon name="credit-card" [size]="18" [strokeWidth]="2"></lucide-icon>
-            <div>
-              <small>Total</small>
-              <p class="price">{{ selectedService?.price | number }} EGP</p>
-            </div>
-          </div>
-        </article>
-
+      @if (currentStep >= 1) {
         <article>
-          <label for="notes">Notes (optional)</label>
-          <textarea id="notes" [(ngModel)]="customerNotes" rows="3" placeholder="Any special requests or notes..."></textarea>
+          <header>
+            <hgroup>
+              <h2>1. Select Branch</h2>
+              @if (selectedBranch) { <small>{{ selectedBranch.name }} — {{ selectedBranch.address }}</small> }
+            </hgroup>
+          </header>
+          @if (!selectedBranch || currentStep === 1) {
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              @for (branch of branches; track branch.id) {
+                <article style="cursor: pointer; padding: 1rem; border: 2px solid transparent; border-color: {{ selectedBranch?.id === branch.id ? 'var(--pico-primary)' : 'var(--pico-card-border-color)' }};" (click)="selectBranch(branch)">
+                  <header>
+                    <h3>{{ branch.name }}</h3>
+                    @if (branch.nameAr) { <small>{{ branch.nameAr }}</small> }
+                  </header>
+                  <p>{{ branch.address }}{{ branch.city ? ', ' + branch.city : '' }}</p>
+                  @if (branch.phone) { <p>{{ branch.phone }}</p> }
+                </article>
+              }
+            </div>
+          } @else {
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem;">
+              <span>{{ selectedBranch.name }} — {{ selectedBranch.address }}</span>
+              <button class="secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-inline-start: auto;" (click)="changeStep(1)">تغيير</button>
+            </div>
+          }
         </article>
-
-        @if (submitting) {
-          <button class="confirm-btn" disabled>
-            <lucide-icon name="loader" [size]="20" [strokeWidth]="2" class="spinner"></lucide-icon>
-            Submitting...
-          </button>
-        } @else {
-          <button class="confirm-btn" (click)="confirmBooking()">
-            <lucide-icon name="check-circle" [size]="20" [strokeWidth]="2"></lucide-icon>
-            Confirm Booking
-          </button>
-        }
-      </section>
-    }
-
-    <footer class="nav-footer">
-      @if (currentStep > 1) {
-        <button class="outline secondary" (click)="back()">
-          <lucide-icon name="arrow-left" [size]="18" [strokeWidth]="2"></lucide-icon>
-          Back
-        </button>
       }
-      @if (currentStep < 4) {
-        <span></span>
+
+      @if (currentStep >= 2) {
+        <article>
+          <header>
+            <hgroup>
+              <h2>2. Select Service</h2>
+              @if (selectedService) { <small>{{ selectedService.name }} ({{ selectedService.durationMinutes }} min — {{ selectedService.price }} EGP)</small> }
+            </hgroup>
+          </header>
+          @if (!selectedService || currentStep === 2) {
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              @for (service of services; track service.id) {
+                <article style="cursor: pointer; padding: 1rem; border: 2px solid transparent; border-color: {{ selectedService?.id === service.id ? 'var(--pico-primary)' : 'var(--pico-card-border-color)' }};" (click)="selectService(service)">
+                  <header>
+                    <h3>{{ service.name }}</h3>
+                    @if (service.nameAr) { <small>{{ service.nameAr }}</small> }
+                  </header>
+                  <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                    <span style="font-weight: bold;">{{ service.price }} EGP</span>
+                    <span style="opacity: 0.6;">{{ service.durationMinutes }} min</span>
+                  </div>
+                </article>
+              }
+            </div>
+          } @else {
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem;">
+              <span>{{ selectedService.name }} ({{ selectedService.durationMinutes }} min — {{ selectedService.price }} EGP)</span>
+              <button class="secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-inline-start: auto;" (click)="changeStep(2)">تغيير</button>
+            </div>
+          }
+        </article>
       }
-    </footer>
+
+      @if (currentStep >= 3) {
+        <article>
+          <header>
+            <hgroup>
+              <h2>3. Select Date & Time</h2>
+              @if (selectedDate && selectedTime) { <small>{{ selectedDate }} at {{ selectedTime }}</small> }
+            </hgroup>
+          </header>
+          @if (!selectedTime || currentStep === 3) {
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+              @for (d of getAvailableDates(); track d.date) {
+                <button style="flex: 1; min-width: 80px; text-align: center; padding: 0.5rem; border: 2px solid transparent; border-color: {{ selectedDate === d.date ? 'var(--pico-primary)' : 'var(--pico-card-border-color)' }};" (click)="selectDate(d.date)">
+                  <div style="font-size: 0.75rem; opacity: 0.6;">{{ d.dayName }}</div>
+                  <div style="font-size: 1.25rem; font-weight: bold;">{{ d.dayNumber }}</div>
+                  <div style="font-size: 0.75rem; opacity: 0.6;">{{ d.month }}</div>
+                </button>
+              }
+            </div>
+            @if (timeSlots.length > 0) {
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                @for (slot of timeSlots; track slot.startTime) {
+                  <button style="padding: 0.5rem 1rem; border: 2px solid transparent; opacity: {{ slot.isAvailable ? 1 : 0.4 }}; border-color: {{ selectedTime === slot.startTime ? 'var(--pico-primary)' : 'var(--pico-card-border-color)' }};" [disabled]="!slot.isAvailable" (click)="slot.isAvailable && selectTime(slot)">
+                    {{ slot.startTime }}
+                  </button>
+                }
+              </div>
+            } @else if (loading) {
+              <p>Loading available times...</p>
+            }
+          } @else {
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem;">
+              <span>{{ selectedDate }} at {{ selectedTime }}</span>
+              <button class="secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-inline-start: auto;" (click)="changeStep(3)">تغيير</button>
+            </div>
+          }
+        </article>
+      }
+
+      @if (currentStep === 4) {
+        <article>
+          <header><h2>4. Confirm Booking</h2></header>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem;">
+            <div><strong>Center:</strong> {{ center?.name }}</div>
+            <div><strong>Branch:</strong> {{ selectedBranch?.name }} — {{ selectedBranch?.address }}</div>
+            <div><strong>Service:</strong> {{ selectedService?.name }} ({{ selectedService?.durationMinutes }} min)</div>
+            <div><strong>Date:</strong> {{ selectedDate }}</div>
+            <div><strong>Time:</strong> {{ selectedTime }}</div>
+            <div><strong>Total:</strong> {{ selectedService?.price }} EGP</div>
+          </div>
+          <div style="padding: 0 1rem 1rem;">
+            <label for="notes">Notes (optional)</label>
+            <textarea id="notes" [(ngModel)]="customerNotes" rows="3" placeholder="Any special requests or notes..."></textarea>
+          </div>
+          <footer style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="secondary" (click)="changeStep(3)">Back</button>
+            <button (click)="confirmBooking()" [attr.aria-busy]="submitting">Confirm Booking</button>
+          </footer>
+        </article>
+      }
+
+    </div>
   }
 </section>
