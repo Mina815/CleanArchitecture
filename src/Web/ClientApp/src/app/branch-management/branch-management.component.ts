@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { BranchesClient, CentersClient, BranchDto, CreateBranchCommand, UpdateBranchCommand, CenterDto, WorkingHourDto, TimeOffDto, SetWorkingHoursCommand, CreateTimeOffCommand, StaffClient, StaffDto, CreateStaffCommand, UpdateStaffCommand, SetStaffServicesCommand, ServicesClient, ServiceDto } from '../web-api-client';
+import { BranchesClient, CentersClient, CenterDetailDto, BranchDto, CreateBranchCommand, UpdateBranchCommand, WorkingHourDto, TimeOffDto, SetWorkingHoursCommand, CreateTimeOffCommand, StaffClient, StaffDto, CreateStaffCommand, UpdateStaffCommand, SetStaffServicesCommand, ServicesClient, ServiceDto } from '../web-api-client';
 
 @Component({
   standalone: false,
@@ -12,8 +12,7 @@ import { BranchesClient, CentersClient, BranchDto, CreateBranchCommand, UpdateBr
 export class BranchManagementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  centers: CenterDto[] = [];
-  selectedCenterId: number | null = null;
+  center: CenterDetailDto | null = null;
   branches: BranchDto[] = [];
   loading = false;
   saving = false;
@@ -74,7 +73,7 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.loadCenters();
+    this.loadCenter();
   }
 
   ngOnDestroy(): void {
@@ -82,24 +81,16 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadCenters(): void {
-    this.centersClient.getCenters(undefined, undefined, 1, 100).pipe(takeUntil(this.destroy$)).subscribe({
-      next: result => {
-        this.centers = result.items ?? [];
+  loadCenter(): void {
+    this.centersClient.getMyCenterEndpoint().pipe(takeUntil(this.destroy$)).subscribe({
+      next: c => {
+        this.center = c;
+        this.formCenterId = c.id ?? 0;
         this.cdr.detectChanges();
-      }
+        if (c?.id) this.loadBranches(c.id);
+      },
+      error: () => this.cdr.detectChanges()
     });
-  }
-
-  selectCenter(centerId: number): void {
-    this.selectedCenterId = centerId;
-    this.branches = [];
-    this.showForm = false;
-    this.editBranch = null;
-    this.selectedBranch = null;
-    this.manageSection = null;
-    this.cdr.detectChanges();
-    this.loadBranches(centerId);
   }
 
   loadBranches(centerId: number): void {
@@ -120,7 +111,7 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
 
   openCreateForm(): void {
     this.editBranch = null;
-    this.formCenterId = this.selectedCenterId ?? 0;
+    this.formCenterId = this.center?.id ?? 0;
     this.formName = '';
     this.formNameAr = '';
     this.formAddress = '';
@@ -135,7 +126,7 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
 
   openEditForm(branch: BranchDto): void {
     this.editBranch = branch;
-    this.formCenterId = this.selectedCenterId ?? 0;
+    this.formCenterId = this.center?.id ?? 0;
     this.formName = branch.name ?? '';
     this.formNameAr = branch.nameAr ?? '';
     this.formAddress = branch.address ?? '';
@@ -176,7 +167,8 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
           this.saving = false;
           this.showForm = false;
           this.editBranch = null;
-          this.loadBranches(this.selectedCenterId!);
+          this.cdr.detectChanges();
+          if (this.center?.id) this.loadBranches(this.center.id);
         },
         error: () => {
           this.saving = false;
@@ -200,7 +192,8 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
         next: () => {
           this.saving = false;
           this.showForm = false;
-          this.loadBranches(this.selectedCenterId!);
+          this.cdr.detectChanges();
+          if (this.center?.id) this.loadBranches(this.center.id);
         },
         error: () => {
           this.saving = false;
@@ -216,7 +209,7 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
       isActive: !branch.isActive
     });
     this.branchesClient.updateBranch(branch.id!, command).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => this.loadBranches(this.selectedCenterId!)
+      next: () => { if (this.center?.id) this.loadBranches(this.center.id); }
     });
   }
 
@@ -290,7 +283,8 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
           this.staffSaving = false;
           this.showStaffForm = false;
           this.editStaff = null;
-          this.loadStaff(this.selectedBranch!.id!);
+          this.cdr.detectChanges();
+          if (this.selectedBranch?.id) this.loadStaff(this.selectedBranch.id);
         },
         error: () => {
           this.staffSaving = false;
@@ -308,7 +302,8 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
         next: () => {
           this.staffSaving = false;
           this.showStaffForm = false;
-          this.loadStaff(this.selectedBranch!.id!);
+          this.cdr.detectChanges();
+          if (this.selectedBranch?.id) this.loadStaff(this.selectedBranch.id);
         },
         error: () => {
           this.staffSaving = false;
@@ -321,14 +316,14 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
   deleteStaff(staff: StaffDto): void {
     if (!confirm(`حذف ${staff.name}؟`)) return;
     this.staffClient.deleteStaff(staff.id!).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => this.loadStaff(this.selectedBranch!.id!),
+      next: () => { if (this.selectedBranch?.id) this.loadStaff(this.selectedBranch.id); },
       error: () => this.cdr.detectChanges()
     });
   }
 
   loadServices(): void {
     if (this.servicesLoading) return;
-    const centerId = this.selectedCenterId;
+    const centerId = this.center?.id;
     if (!centerId) return;
     this.servicesLoading = true;
     this.servicesClient.getServices(centerId).pipe(takeUntil(this.destroy$)).subscribe({
@@ -446,7 +441,8 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
       next: () => {
         this.timeOffSaving = false;
         this.showTimeOffForm = false;
-        this.loadTimeOffs(this.selectedBranch!.id!);
+        this.cdr.detectChanges();
+        if (this.selectedBranch?.id) this.loadTimeOffs(this.selectedBranch.id);
       },
       error: () => {
         this.timeOffSaving = false;

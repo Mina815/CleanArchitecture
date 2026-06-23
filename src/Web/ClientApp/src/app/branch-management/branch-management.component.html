@@ -5,302 +5,299 @@
     </h1>
   </header>
 
-  <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-    <select style="flex: 1; min-width: 200px;" [value]="selectedCenterId ?? ''" (change)="selectCenter(+$any($event.target).value)">
-      <option value="" disabled>اختر المركز</option>
-      @for (center of centers; track center.id) {
-        <option [value]="center.id">{{ center.name || center.nameAr }}</option>
-      }
-    </select>
-    @if (selectedCenterId && !selectedBranch) {
-      <button (click)="openCreateForm()">
-        إضافة فرع جديد
-      </button>
-    }
-  </div>
-
-  @if (showForm) {
-    <article style="margin-bottom: 1.5rem;">
-      <hgroup style="margin-bottom: 1rem;">
-        <h2>{{ editBranch ? 'تعديل الفرع' : 'إضافة فرع جديد' }}</h2>
-      </hgroup>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-        <label>الاسم (عربي)
-          <input [(ngModel)]="formNameAr" placeholder="الاسم بالعربية" required />
-        </label>
-        <label>الاسم (إنجليزي)
-          <input [(ngModel)]="formName" placeholder="Name in English" required />
-        </label>
-        <label style="grid-column: span 2;">العنوان
-          <input [(ngModel)]="formAddress" placeholder="عنوان الفرع" required />
-        </label>
-        <label>المدينة
-          <input [(ngModel)]="formCity" placeholder="المدينة" required />
-        </label>
-        <label>الحي
-          <input [(ngModel)]="formDistrict" placeholder="الحي (اختياري)" />
-        </label>
-        <label>رقم الجوال
-          <input [(ngModel)]="formPhone" placeholder="رقم الجوال (اختياري)" type="tel" />
-        </label>
-        <label>رقم واتساب
-          <input [(ngModel)]="formWhatsapp" placeholder="رقم واتساب (اختياري)" type="tel" />
-        </label>
-      </div>
-      <footer style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
-        <button class="secondary" (click)="cancelForm()">إلغاء</button>
-        <button (click)="saveBranch()" [attr.aria-busy]="saving">
-          {{ editBranch ? 'حفظ التغييرات' : 'إضافة' }}
-        </button>
-      </footer>
+  @if (!center) {
+    <article style="text-align: center; padding: 3rem 0;">
+      <p>جاري التحميل...</p>
     </article>
-  }
-
-  @if (selectedBranch && manageSection) {
-    <article style="margin-bottom: 1.5rem;">
-      <header style="display: flex; align-items: center; justify-content: space-between;">
-        <hgroup style="margin: 0;">
-          <h2 style="margin: 0;">{{ selectedBranch.nameAr || selectedBranch.name }}</h2>
-          <p style="margin: 0; font-size: 0.85rem;">{{ manageSection === 'hours' ? 'إدارة ساعات العمل' : 'إدارة الإجازات' }}</p>
-        </hgroup>
-        <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="closeManagement()">
-          عودة
+  } @else {
+    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+      @if (center && !selectedBranch && !showForm) {
+        <button (click)="openCreateForm()">
+          إضافة فرع جديد
         </button>
-      </header>
-
-      @if (manageSection === 'hours') {
-        <div style="margin-top: 1rem;">
-          @if (hoursLoading) {
-            <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
-          } @else {
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              @for (wh of workingHours; track wh.dayOfWeek; let i = $index) {
-                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 8px; background: var(--pico-card-background-color);">
-                  <strong style="min-width: 80px;">{{ dayNames[i] }}</strong>
-                  <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer; margin: 0;">
-                    <input type="checkbox" [(ngModel)]="wh.isClosed" style="width: auto;" />
-                    مغلق
-                  </label>
-                  @if (!wh.isClosed) {
-                    <label style="margin: 0;">
-                      من
-                      <input type="time" [value]="wh.openTime?.slice(0, 5)" (change)="wh.openTime = $any($event.target).value + ':00'" style="width: 110px;" />
-                    </label>
-                    <label style="margin: 0;">
-                      إلى
-                      <input type="time" [value]="wh.closeTime?.slice(0, 5)" (change)="wh.closeTime = $any($event.target).value + ':00'" style="width: 110px;" />
-                    </label>
-                  }
-                </div>
-              }
-            </div>
-            <footer style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
-              <button (click)="saveWorkingHours()" [attr.aria-busy]="hoursSaving">حفظ ساعات العمل</button>
-            </footer>
-          }
-        </div>
       }
+    </div>
 
-      @if (manageSection === 'staff') {
-        <div style="margin-top: 1rem;">
-          @if (showStaffForm) {
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; background: var(--pico-card-background-color); border-radius: 8px;">
-              <label style="grid-column: span 2;">الاسم
-                <input [(ngModel)]="formStaffName" placeholder="اسم الموظف" required />
-              </label>
-              <label>رقم الجوال
-                <input [(ngModel)]="formStaffPhone" placeholder="رقم الجوال (اختياري)" type="tel" />
-              </label>
-              <label>التخصص
-                <input [(ngModel)]="formStaffSpecialization" placeholder="التخصص (اختياري)" />
-              </label>
-              @if (services.length > 0) {
-                <fieldset style="grid-column: span 2; border: none; padding: 0;">
-                  <legend style="font-weight: 600; margin-bottom: 0.5rem;">الخدمات التي يقدمها</legend>
-                  <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                    @for (svc of services; track svc.id) {
-                      <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer; margin: 0; padding: 0.35rem 0.75rem; border-radius: 6px; background: var(--pico-card-background-color);">
-                        <input type="checkbox" [checked]="selectedServiceIds.has(svc.id!)" (change)="toggleService(svc.id!)" style="width: auto;" />
-                        {{ svc.nameAr || svc.name }}
+    @if (showForm) {
+      <article style="margin-bottom: 1.5rem;">
+        <hgroup style="margin-bottom: 1rem;">
+          <h2>{{ editBranch ? 'تعديل الفرع' : 'إضافة فرع جديد' }}</h2>
+        </hgroup>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <label>الاسم (عربي)
+            <input [(ngModel)]="formNameAr" placeholder="الاسم بالعربية" required />
+          </label>
+          <label>الاسم (إنجليزي)
+            <input [(ngModel)]="formName" placeholder="Name in English" required />
+          </label>
+          <label style="grid-column: span 2;">العنوان
+            <input [(ngModel)]="formAddress" placeholder="عنوان الفرع" required />
+          </label>
+          <label>المدينة
+            <input [(ngModel)]="formCity" placeholder="المدينة" required />
+          </label>
+          <label>الحي
+            <input [(ngModel)]="formDistrict" placeholder="الحي (اختياري)" />
+          </label>
+          <label>رقم الجوال
+            <input [(ngModel)]="formPhone" placeholder="رقم الجوال (اختياري)" type="tel" />
+          </label>
+          <label>رقم واتساب
+            <input [(ngModel)]="formWhatsapp" placeholder="رقم واتساب (اختياري)" type="tel" />
+          </label>
+        </div>
+        <footer style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+          <button class="secondary" (click)="cancelForm()">إلغاء</button>
+          <button (click)="saveBranch()" [attr.aria-busy]="saving">
+            {{ editBranch ? 'حفظ التغييرات' : 'إضافة' }}
+          </button>
+        </footer>
+      </article>
+    }
+
+    @if (selectedBranch && manageSection) {
+      <article style="margin-bottom: 1.5rem;">
+        <header style="display: flex; align-items: center; justify-content: space-between;">
+          <hgroup style="margin: 0;">
+            <h2 style="margin: 0;">{{ selectedBranch.nameAr || selectedBranch.name }}</h2>
+            <p style="margin: 0; font-size: 0.85rem;">
+              @if (manageSection === 'hours') {إدارة ساعات العمل}
+              @else if (manageSection === 'staff') {إدارة الموظفين}
+              @else {إدارة الإجازات}
+            </p>
+          </hgroup>
+          <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="closeManagement()">
+            عودة
+          </button>
+        </header>
+
+        @if (manageSection === 'hours') {
+          <div style="margin-top: 1rem;">
+            @if (hoursLoading) {
+              <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
+            } @else {
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                @for (wh of workingHours; track wh.dayOfWeek; let i = $index) {
+                  <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 8px; background: var(--pico-card-background-color);">
+                    <strong style="min-width: 80px;">{{ dayNames[i] }}</strong>
+                    <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer; margin: 0;">
+                      <input type="checkbox" [(ngModel)]="wh.isClosed" style="width: auto;" />
+                      مغلق
+                    </label>
+                    @if (!wh.isClosed) {
+                      <label style="margin: 0;">
+                        من
+                        <input type="time" [value]="wh.openTime?.slice(0, 5)" (change)="wh.openTime = $any($event.target).value + ':00'" style="width: 110px;" />
+                      </label>
+                      <label style="margin: 0;">
+                        إلى
+                        <input type="time" [value]="wh.closeTime?.slice(0, 5)" (change)="wh.closeTime = $any($event.target).value + ':00'" style="width: 110px;" />
                       </label>
                     }
                   </div>
-                </fieldset>
-              }
-              <div style="grid-column: span 2; display: flex; gap: 0.5rem; justify-content: flex-end;">
-                <button class="secondary" (click)="cancelStaffForm()">إلغاء</button>
-                <button (click)="saveStaff()" [attr.aria-busy]="staffSaving">{{ editStaff ? 'حفظ' : 'إضافة' }}</button>
-              </div>
-            </div>
-          } @else {
-            <button style="margin-bottom: 1rem;" (click)="openStaffForm()">إضافة موظف</button>
-          }
-
-          @if (staffLoading) {
-            <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
-          } @else if (staffList.length === 0) {
-            <p style="text-align: center; padding: 2rem 0; color: var(--pico-muted-color);">لا يوجد موظفون في هذا الفرع</p>
-          } @else {
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              @for (staff of staffList; track staff.id) {
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem; border-radius: 8px; background: var(--pico-card-background-color);">
-                  <div style="flex: 1;">
-                    <strong>{{ staff.name }}</strong>
-                    @if (staff.specialization) { <span style="color: var(--pico-muted-color); font-size: 0.85rem;"> · {{ staff.specialization }}</span> }
-                    @if (staff.phone) { <span style="color: var(--pico-muted-color); font-size: 0.85rem;"> · {{ staff.phone }}</span> }
-                    @if (staff.serviceIds && staff.serviceIds.length > 0) {
-                      <div style="margin-top: 0.35rem; display: flex; flex-wrap: wrap; gap: 0.25rem;">
-                        @for (sid of staff.serviceIds; track sid) {
-                          @if (services.find(s => s.id === sid); as svc) {
-                            <span style="font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 4px; background: var(--pico-primary-background); color: var(--pico-primary-inverse);">{{ svc.nameAr || svc.name }}</span>
-                          }
-                        }
-                      </div>
-                    }
-                  </div>
-                  <div style="display: flex; gap: 0.35rem; flex-shrink: 0;">
-                    <button class="secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" (click)="openStaffForm(staff)">تعديل</button>
-                    <button class="secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" (click)="deleteStaff(staff)">حذف</button>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      }
-
-      @if (manageSection === 'timeoff') {
-        <div style="margin-top: 1rem;">
-          @if (showTimeOffForm) {
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; background: var(--pico-card-background-color); border-radius: 8px;">
-              <label>من تاريخ
-                <input type="date" [(ngModel)]="timeOffFromDate" required />
-              </label>
-              <label>إلى تاريخ
-                <input type="date" [(ngModel)]="timeOffToDate" />
-              </label>
-              <label>من وقت
-                <input type="time" [(ngModel)]="timeOffFromTime" />
-              </label>
-              <label>إلى وقت
-                <input type="time" [(ngModel)]="timeOffToTime" />
-              </label>
-              <label>السبب
-                <input [(ngModel)]="timeOffReason" placeholder="سبب الإجازة (اختياري)" />
-              </label>
-              <label>النوع
-                <select [(ngModel)]="timeOffType">
-                  <option [value]="0">إجازة رسمية</option>
-                  <option [value]="1">إجازة سنوية</option>
-                  <option [value]="2">إجازة مرضية</option>
-                  <option [value]="3">أخرى</option>
-                </select>
-              </label>
-              <div style="grid-column: span 2; display: flex; gap: 0.5rem; justify-content: flex-end;">
-                <button class="secondary" (click)="cancelTimeOffForm()">إلغاء</button>
-                <button (click)="saveTimeOff()" [attr.aria-busy]="timeOffSaving">إضافة إجازة</button>
-              </div>
-            </div>
-          } @else {
-            <button style="margin-bottom: 1rem;" (click)="openTimeOffForm()">إضافة إجازة</button>
-          }
-
-          @if (timeOffsLoading) {
-            <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
-          } @else if (timeOffs.length === 0) {
-            <p style="text-align: center; padding: 2rem 0; color: var(--pico-muted-color);">لا توجد إجازات مسجلة</p>
-          } @else {
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              @for (toff of timeOffs; track toff.id) {
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-radius: 8px; background: var(--pico-card-background-color);">
-                  <div>
-                    <strong>{{ toff.fromDate | date:'dd/MM/yyyy' }} - {{ toff.toDate | date:'dd/MM/yyyy' }}</strong>
-                    @if (toff.fromTime) {
-                      <span> · {{ toff.fromTime?.slice(0, 5) }} - {{ toff.toTime?.slice(0, 5) }}</span>
-                    }
-                    @if (toff.type !== undefined) {
-                      <span> · 
-                        @if (toff.type === 0) {إجازة رسمية}
-                        @else if (toff.type === 1) {إجازة سنوية}
-                        @else if (toff.type === 2) {إجازة مرضية}
-                        @else {أخرى}
-                      </span>
-                    }
-                    @if (toff.reason) {
-                      <br /><small>{{ toff.reason }}</small>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      }
-    </article>
-  }
-
-  @if (selectedCenterId && !showForm && !selectedBranch) {
-    @if (loading) {
-      <article style="text-align: center; padding: 3rem 0;">
-        <p>جاري التحميل...</p>
-      </article>
-    } @else if (branches.length === 0) {
-      <article style="text-align: center; padding: 3rem 0;">
-        <hgroup>
-          <h3>لا توجد فروع</h3>
-          <p>لم تقم بإضافة أي فروع بعد. انقر على "إضافة فرع جديد" للبدء.</p>
-        </hgroup>
-      </article>
-    } @else {
-      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-        @for (branch of branches; track branch.id) {
-          <article style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 10px;">
-            <div style="flex: 1; min-width: 0;">
-              <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <strong>{{ branch.nameAr || branch.name }}</strong>
-                @if (branch.isActive) {
-                  <span class="badge badge--active">نشط</span>
-                } @else {
-                  <span class="badge badge--inactive">غير نشط</span>
                 }
               </div>
-              <small style="color: var(--pico-muted-color); display: block; margin-top: 0.25rem;">
-                {{ branch.name ? (branch.nameAr ? branch.nameAr + ' · ' : '') + branch.name : '' }}
-              </small>
-              <div style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--pico-muted-color);">
-                {{ branch.city }}{{ branch.address ? ' · ' + branch.address : '' }}
-                @if (branch.phone) {
-                   · {{ branch.phone }}
-                }
-              </div>
-            </div>
-            <div style="display: flex; gap: 0.35rem; flex-shrink: 0;">
-              <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="openEditForm(branch)">
-                تعديل
-              </button>
-              <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="toggleActive(branch)">
-                {{ branch.isActive ? 'تعطيل' : 'تفعيل' }}
-              </button>
-              <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="selectBranch(branch, 'hours')">
-                ساعات العمل
-              </button>
-              <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="selectBranch(branch, 'timeoff')">
-                الإجازات
-              </button>
-              <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="selectBranch(branch, 'staff')">
-                الموظفون
-              </button>
-            </div>
-          </article>
+              <footer style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+                <button (click)="saveWorkingHours()" [attr.aria-busy]="hoursSaving">حفظ ساعات العمل</button>
+              </footer>
+            }
+          </div>
         }
-      </div>
+
+        @if (manageSection === 'staff') {
+          <div style="margin-top: 1rem;">
+            @if (showStaffForm) {
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; background: var(--pico-card-background-color); border-radius: 8px;">
+                <label style="grid-column: span 2;">الاسم
+                  <input [(ngModel)]="formStaffName" placeholder="اسم الموظف" required />
+                </label>
+                <label>رقم الجوال
+                  <input [(ngModel)]="formStaffPhone" placeholder="رقم الجوال (اختياري)" type="tel" />
+                </label>
+                <label>التخصص
+                  <input [(ngModel)]="formStaffSpecialization" placeholder="التخصص (اختياري)" />
+                </label>
+                @if (services.length > 0) {
+                  <fieldset style="grid-column: span 2; border: none; padding: 0;">
+                    <legend style="font-weight: 600; margin-bottom: 0.5rem;">الخدمات التي يقدمها</legend>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                      @for (svc of services; track svc.id) {
+                        <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer; margin: 0; padding: 0.35rem 0.75rem; border-radius: 6px; background: var(--pico-card-background-color);">
+                          <input type="checkbox" [checked]="selectedServiceIds.has(svc.id!)" (change)="toggleService(svc.id!)" style="width: auto;" />
+                          {{ svc.nameAr || svc.name }}
+                        </label>
+                      }
+                    </div>
+                  </fieldset>
+                }
+                <div style="grid-column: span 2; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                  <button class="secondary" (click)="cancelStaffForm()">إلغاء</button>
+                  <button (click)="saveStaff()" [attr.aria-busy]="staffSaving">{{ editStaff ? 'حفظ' : 'إضافة' }}</button>
+                </div>
+              </div>
+            } @else {
+              <button style="margin-bottom: 1rem;" (click)="openStaffForm()">إضافة موظف</button>
+            }
+
+            @if (staffLoading) {
+              <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
+            } @else if (staffList.length === 0) {
+              <p style="text-align: center; padding: 2rem 0; color: var(--pico-muted-color);">لا يوجد موظفون في هذا الفرع</p>
+            } @else {
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                @for (staff of staffList; track staff.id) {
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem; border-radius: 8px; background: var(--pico-card-background-color);">
+                    <div style="flex: 1;">
+                      <strong>{{ staff.name }}</strong>
+                      @if (staff.specialization) { <span style="color: var(--pico-muted-color); font-size: 0.85rem;"> · {{ staff.specialization }}</span> }
+                      @if (staff.phone) { <span style="color: var(--pico-muted-color); font-size: 0.85rem;"> · {{ staff.phone }}</span> }
+                      @if (staff.serviceIds && staff.serviceIds.length > 0) {
+                        <div style="margin-top: 0.35rem; display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                          @for (sid of staff.serviceIds; track sid) {
+                            @if (services.find(s => s.id === sid); as svc) {
+                              <span style="font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 4px; background: var(--pico-primary-background); color: var(--pico-primary-inverse);">{{ svc.nameAr || svc.name }}</span>
+                            }
+                          }
+                        </div>
+                      }
+                    </div>
+                    <div style="display: flex; gap: 0.35rem; flex-shrink: 0;">
+                      <button class="secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" (click)="openStaffForm(staff)">تعديل</button>
+                      <button class="secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" (click)="deleteStaff(staff)">حذف</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (manageSection === 'timeoff') {
+          <div style="margin-top: 1rem;">
+            @if (showTimeOffForm) {
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; background: var(--pico-card-background-color); border-radius: 8px;">
+                <label>من تاريخ
+                  <input type="date" [(ngModel)]="timeOffFromDate" required />
+                </label>
+                <label>إلى تاريخ
+                  <input type="date" [(ngModel)]="timeOffToDate" />
+                </label>
+                <label>من وقت
+                  <input type="time" [(ngModel)]="timeOffFromTime" />
+                </label>
+                <label>إلى وقت
+                  <input type="time" [(ngModel)]="timeOffToTime" />
+                </label>
+                <label>السبب
+                  <input [(ngModel)]="timeOffReason" placeholder="سبب الإجازة (اختياري)" />
+                </label>
+                <label>النوع
+                  <select [(ngModel)]="timeOffType">
+                    <option [value]="0">إجازة رسمية</option>
+                    <option [value]="1">إجازة سنوية</option>
+                    <option [value]="2">إجازة مرضية</option>
+                    <option [value]="3">أخرى</option>
+                  </select>
+                </label>
+                <div style="grid-column: span 2; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                  <button class="secondary" (click)="cancelTimeOffForm()">إلغاء</button>
+                  <button (click)="saveTimeOff()" [attr.aria-busy]="timeOffSaving">إضافة إجازة</button>
+                </div>
+              </div>
+            } @else {
+              <button style="margin-bottom: 1rem;" (click)="openTimeOffForm()">إضافة إجازة</button>
+            }
+
+            @if (timeOffsLoading) {
+              <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
+            } @else if (timeOffs.length === 0) {
+              <p style="text-align: center; padding: 2rem 0; color: var(--pico-muted-color);">لا توجد إجازات مسجلة</p>
+            } @else {
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                @for (toff of timeOffs; track toff.id) {
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-radius: 8px; background: var(--pico-card-background-color);">
+                    <div>
+                      <strong>{{ toff.fromDate | date:'dd/MM/yyyy' }} - {{ toff.toDate | date:'dd/MM/yyyy' }}</strong>
+                      @if (toff.fromTime) {
+                        <span> · {{ toff.fromTime?.slice(0, 5) }} - {{ toff.toTime?.slice(0, 5) }}</span>
+                      }
+                      @if (toff.type !== undefined) {
+                        <span> · 
+                          @if (toff.type === 0) {إجازة رسمية}
+                          @else if (toff.type === 1) {إجازة سنوية}
+                          @else if (toff.type === 2) {إجازة مرضية}
+                          @else {أخرى}
+                        </span>
+                      }
+                      @if (toff.reason) {
+                        <br /><small>{{ toff.reason }}</small>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </article>
     }
-  } @else if (!selectedCenterId) {
-    <article style="text-align: center; padding: 3rem 0;">
-      <hgroup>
-        <h3>اختر مركزًا</h3>
-        <p>يرجى اختيار مركز لإدارة فروعه</p>
-      </hgroup>
-    </article>
+
+    @if (!showForm && !selectedBranch) {
+      @if (loading) {
+        <article style="text-align: center; padding: 3rem 0;">
+          <p>جاري التحميل...</p>
+        </article>
+      } @else if (branches.length === 0) {
+        <article style="text-align: center; padding: 3rem 0;">
+          <hgroup>
+            <h3>لا توجد فروع</h3>
+            <p>لم تقم بإضافة أي فروع بعد. انقر على "إضافة فرع جديد" للبدء.</p>
+          </hgroup>
+        </article>
+      } @else {
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          @for (branch of branches; track branch.id) {
+            <article style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 10px;">
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <strong>{{ branch.nameAr || branch.name }}</strong>
+                  @if (branch.isActive) {
+                    <span class="badge badge--active">نشط</span>
+                  } @else {
+                    <span class="badge badge--inactive">غير نشط</span>
+                  }
+                </div>
+                <small style="color: var(--pico-muted-color); display: block; margin-top: 0.25rem;">
+                  {{ branch.name ? (branch.nameAr ? branch.nameAr + ' · ' : '') + branch.name : '' }}
+                </small>
+                <div style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--pico-muted-color);">
+                  {{ branch.city }}{{ branch.address ? ' · ' + branch.address : '' }}
+                  @if (branch.phone) {
+                     · {{ branch.phone }}
+                  }
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.35rem; flex-shrink: 0;">
+                <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="openEditForm(branch)">
+                  تعديل
+                </button>
+                <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="toggleActive(branch)">
+                  {{ branch.isActive ? 'تعطيل' : 'تفعيل' }}
+                </button>
+                <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="selectBranch(branch, 'hours')">
+                  ساعات العمل
+                </button>
+                <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="selectBranch(branch, 'timeoff')">
+                  الإجازات
+                </button>
+                <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="selectBranch(branch, 'staff')">
+                  الموظفون
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    }
   }
 </section>
