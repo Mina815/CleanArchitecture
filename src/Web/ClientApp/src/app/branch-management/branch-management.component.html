@@ -101,6 +101,74 @@
         </div>
       }
 
+      @if (manageSection === 'staff') {
+        <div style="margin-top: 1rem;">
+          @if (showStaffForm) {
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; background: var(--pico-card-background-color); border-radius: 8px;">
+              <label style="grid-column: span 2;">الاسم
+                <input [(ngModel)]="formStaffName" placeholder="اسم الموظف" required />
+              </label>
+              <label>رقم الجوال
+                <input [(ngModel)]="formStaffPhone" placeholder="رقم الجوال (اختياري)" type="tel" />
+              </label>
+              <label>التخصص
+                <input [(ngModel)]="formStaffSpecialization" placeholder="التخصص (اختياري)" />
+              </label>
+              @if (services.length > 0) {
+                <fieldset style="grid-column: span 2; border: none; padding: 0;">
+                  <legend style="font-weight: 600; margin-bottom: 0.5rem;">الخدمات التي يقدمها</legend>
+                  <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    @for (svc of services; track svc.id) {
+                      <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer; margin: 0; padding: 0.35rem 0.75rem; border-radius: 6px; background: var(--pico-card-background-color);">
+                        <input type="checkbox" [checked]="selectedServiceIds.has(svc.id!)" (change)="toggleService(svc.id!)" style="width: auto;" />
+                        {{ svc.nameAr || svc.name }}
+                      </label>
+                    }
+                  </div>
+                </fieldset>
+              }
+              <div style="grid-column: span 2; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <button class="secondary" (click)="cancelStaffForm()">إلغاء</button>
+                <button (click)="saveStaff()" [attr.aria-busy]="staffSaving">{{ editStaff ? 'حفظ' : 'إضافة' }}</button>
+              </div>
+            </div>
+          } @else {
+            <button style="margin-bottom: 1rem;" (click)="openStaffForm()">إضافة موظف</button>
+          }
+
+          @if (staffLoading) {
+            <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
+          } @else if (staffList.length === 0) {
+            <p style="text-align: center; padding: 2rem 0; color: var(--pico-muted-color);">لا يوجد موظفون في هذا الفرع</p>
+          } @else {
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              @for (staff of staffList; track staff.id) {
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem; border-radius: 8px; background: var(--pico-card-background-color);">
+                  <div style="flex: 1;">
+                    <strong>{{ staff.name }}</strong>
+                    @if (staff.specialization) { <span style="color: var(--pico-muted-color); font-size: 0.85rem;"> · {{ staff.specialization }}</span> }
+                    @if (staff.phone) { <span style="color: var(--pico-muted-color); font-size: 0.85rem;"> · {{ staff.phone }}</span> }
+                    @if (staff.serviceIds && staff.serviceIds.length > 0) {
+                      <div style="margin-top: 0.35rem; display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                        @for (sid of staff.serviceIds; track sid) {
+                          @if (services.find(s => s.id === sid); as svc) {
+                            <span style="font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 4px; background: var(--pico-primary-background); color: var(--pico-primary-inverse);">{{ svc.nameAr || svc.name }}</span>
+                          }
+                        }
+                      </div>
+                    }
+                  </div>
+                  <div style="display: flex; gap: 0.35rem; flex-shrink: 0;">
+                    <button class="secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" (click)="openStaffForm(staff)">تعديل</button>
+                    <button class="secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" (click)="deleteStaff(staff)">حذف</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
       @if (manageSection === 'timeoff') {
         <div style="margin-top: 1rem;">
           @if (showTimeOffForm) {
@@ -218,6 +286,9 @@
               </button>
               <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="selectBranch(branch, 'timeoff')">
                 الإجازات
+              </button>
+              <button class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" (click)="selectBranch(branch, 'staff')">
+                الموظفون
               </button>
             </div>
           </article>

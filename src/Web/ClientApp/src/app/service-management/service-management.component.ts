@@ -1,9 +1,7 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { ServicesClient, CentersClient, ServiceDto, CreateServiceCommand, UpdateServiceCommand } from '../web-api-client';
-import { ServiceStore } from '../stores/service.store';
-import { CenterStore } from '../stores/center.store';
+import { ServicesClient, CentersClient, ServiceDto, CenterDetailDto, CreateServiceCommand, UpdateServiceCommand } from '../web-api-client';
 
 @Component({
   standalone: false,
@@ -12,9 +10,10 @@ import { CenterStore } from '../stores/center.store';
 })
 export class ServiceManagementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  private readonly servicesClient = inject(ServicesClient);
-  readonly store = inject(ServiceStore);
-  readonly centerStore = inject(CenterStore);
+
+  center: CenterDetailDto | null = null;
+  services: ServiceDto[] = [];
+  loading = false;
 
   showForm = false;
   editItem: ServiceDto | null = null;
@@ -27,14 +26,48 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
   formDisplayOrder = 0;
   saving = false;
 
+  constructor(
+    private servicesClient: ServicesClient,
+    private centersClient: CentersClient,
+    private cdr: ChangeDetectorRef
+  ) {}
+
   ngOnInit(): void {
-    const center = this.centerStore.center();
-    if (center?.id) this.store.load(center.id);
+    this.loadCenter();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  loadCenter(): void {
+    this.centersClient.getMyCenterEndpoint().pipe(takeUntil(this.destroy$)).subscribe({
+      next: c => {
+        this.center = c;
+        this.cdr.detectChanges();
+        if (c?.id) this.loadServices(c.id);
+      },
+      error: () => {
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadServices(centerId: number): void {
+    this.loading = true;
+    this.cdr.detectChanges();
+    this.servicesClient.getServices(centerId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: result => {
+        this.services = result ?? [];
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   openCreate(): void {
@@ -56,9 +89,9 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
   cancelForm(): void { this.showForm = false; this.editItem = null; }
 
   save(): void {
-    const center = this.centerStore.center();
-    if (!center?.id || !this.formName || !this.formNameAr) return;
+    if (!this.center?.id || !this.formName || !this.formNameAr) return;
     this.saving = true;
+    this.cdr.detectChanges();
 
     if (this.editItem) {
       this.servicesClient.updateService(this.editItem.id!, new UpdateServiceCommand({
@@ -66,28 +99,28 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
         description: this.formDescription || undefined, descriptionAr: this.formDescriptionAr || undefined,
         price: this.formPrice, durationMinutes: this.formDurationMinutes, displayOrder: this.formDisplayOrder
       })).pipe(takeUntil(this.destroy$)).subscribe({
-        next: () => { this.saving = false; this.showForm = false; this.store.load(center.id!); },
-        error: () => this.saving = false
+        next: () => { this.saving = false; this.showForm = false; this.cdr.detectChanges(); this.loadServices(this.center!.id!); },
+        error: () => { this.saving = false; this.cdr.detectChanges(); }
       });
     } else {
       this.servicesClient.createService(new CreateServiceCommand({
-        centerId: center.id, name: this.formName, nameAr: this.formNameAr,
+        centerId: this.center.id, name: this.formName, nameAr: this.formNameAr,
         description: this.formDescription || undefined, descriptionAr: this.formDescriptionAr || undefined,
         price: this.formPrice, durationMinutes: this.formDurationMinutes, displayOrder: this.formDisplayOrder
       })).pipe(takeUntil(this.destroy$)).subscribe({
-        next: () => { this.saving = false; this.showForm = false; this.store.load(center.id!); },
-        error: () => this.saving = false
+        next: () => { this.saving = false; this.showForm = false; this.cdr.detectChanges(); this.loadServices(this.center!.id!); },
+        error: () => { this.saving = false; this.cdr.detectChanges(); }
       });
     }
   }
 
   toggleActive(svc: ServiceDto): void {
-    const center = this.centerStore.center();
-    if (!center?.id) return;
+    if (!this.center?.id) return;
     this.servicesClient.updateService(svc.id!, new UpdateServiceCommand({
       id: svc.id, isActive: !svc.isActive
     })).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => this.store.load(center.id!)
+      next: () => this.loadServices(this.center!.id!),
+      error: () => this.cdr.detectChanges()
     });
   }
 }

@@ -10,6 +10,7 @@ const PROXY_CONFIG = [
       "/api",
       "/openapi",
       "/scalar",
+      "/uploads",
       "/weatherforecast",
       "/WeatherForecast"
     ],

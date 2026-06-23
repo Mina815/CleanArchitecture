@@ -12,7 +12,7 @@
     }
   </header>
 
-  @if (!centerStore.isProfileComplete()) {
+  @if (!profileComplete) {
     <article style="background: #ff9800; color: white; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
       <span style="flex: 1;">⚠️ الملف الشخصي للمركز غير مكتمل. يرجى إضافة الاسم والوصف والشعار.</span>
       <a routerLink="/provider/center-profile" style="color: white; text-decoration: underline; font-weight: bold;">إكمال الملف</a>
@@ -26,20 +26,15 @@
     <a routerLink="/provider/center-profile" class="secondary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; border: 1px solid var(--pico-muted-border-color); border-radius: 6px; text-decoration: none;">الملف الشخصي</a>
   </div>
 
-  <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-    <select style="flex: 1; min-width: 200px;" [value]="selectedCenterId ?? ''" (change)="selectCenter(+$any($event.target).value)">
-      <option value="" disabled>اختر المركز</option>
-      @for (center of centers; track center.id) {
-        <option [value]="center.id">{{ center.name || center.nameAr }}</option>
-      }
-    </select>
-    <select style="flex: 1; min-width: 200px;" [disabled]="!selectedCenterId" [value]="selectedBranchId ?? ''" (change)="selectBranch(+$any($event.target).value)">
-      <option value="" disabled>اختر الفرع</option>
-      @for (branch of branches; track branch.id) {
-        <option [value]="branch.id">{{ branch.name || branch.nameAr }}</option>
-      }
-    </select>
-  </div>
+  @if (branches.length > 1) {
+    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+      <select style="flex: 1; min-width: 200px;" [value]="selectedBranchId ?? ''" (change)="selectBranch(+$any($event.target).value)">
+        @for (branch of branches; track branch.id) {
+          <option [value]="branch.id">{{ branch.name || branch.nameAr }}</option>
+        }
+      </select>
+    </div>
+  }
 
   @if (selectedBranchId) {
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">

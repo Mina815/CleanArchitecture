@@ -1,10 +1,8 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { BranchesClient, BookingsClient, BookingDetailDto } from '../web-api-client';
-import { BookingStore } from '../stores/booking.store';
+import { BranchesClient, BookingsClient, CentersClient, CenterDetailDto, BookingDto, BookingDetailDto } from '../web-api-client';
 import { BookingHubService } from '../services/booking-hub.service';
-import { CenterStore } from '../stores/center.store';
 
 @Component({
   standalone: false,
@@ -13,25 +11,26 @@ import { CenterStore } from '../stores/center.store';
 })
 export class BookingManagementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  private readonly branchesClient = inject(BranchesClient);
-  private readonly bookingsClient = inject(BookingsClient);
-  private readonly hubService = inject(BookingHubService);
-  readonly store = inject(BookingStore);
-  readonly centerStore = inject(CenterStore);
 
+  center: CenterDetailDto | null = null;
   branches: any[] = [];
   selectedBranchId: number | null = null;
+  bookings: BookingDto[] = [];
+  loading = false;
   selectedDetail: BookingDetailDto | null = null;
   confirming = false;
   completing = false;
 
+  constructor(
+    private branchesClient: BranchesClient,
+    private bookingsClient: BookingsClient,
+    private centersClient: CentersClient,
+    private hubService: BookingHubService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
   ngOnInit(): void {
-    const center = this.centerStore.center();
-    if (center?.id) {
-      this.branchesClient.getBranches(center.id).pipe(takeUntil(this.destroy$)).subscribe({
-        next: items => this.branches = items ?? []
-      });
-    }
+    this.loadCenter();
   }
 
   ngOnDestroy(): void {
@@ -40,34 +39,88 @@ export class BookingManagementComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  loadCenter(): void {
+    this.centersClient.getMyCenterEndpoint().pipe(takeUntil(this.destroy$)).subscribe({
+      next: c => {
+        this.center = c;
+        this.cdr.detectChanges();
+        if (c?.id) this.loadBranches(c.id);
+      },
+      error: () => this.cdr.detectChanges()
+    });
+  }
+
+  loadBranches(centerId: number): void {
+    this.branchesClient.getBranches(centerId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: items => {
+        this.branches = items ?? [];
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
+    });
+  }
+
   selectBranch(branchId: number): void {
     this.selectedBranchId = branchId;
     this.selectedDetail = null;
-    this.store.loadBranchToday(branchId).pipe(takeUntil(this.destroy$)).subscribe();
+    this.cdr.detectChanges();
+    this.loadBranchBookings(branchId);
     this.hubService.connect('', branchId);
   }
 
+  loadBranchBookings(branchId: number): void {
+    this.loading = true;
+    this.cdr.detectChanges();
+    this.bookingsClient.getBranchBookingsToday(branchId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: items => {
+        this.bookings = items ?? [];
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   viewDetail(id: number): void {
-    this.store.loadDetail(id).pipe(takeUntil(this.destroy$)).subscribe({
-      next: d => this.selectedDetail = d
+    this.bookingsClient.getBookingById(id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: d => {
+        this.selectedDetail = d;
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
     });
   }
 
   confirmBooking(id: number): void {
     if (this.confirming) return;
     this.confirming = true;
+    this.cdr.detectChanges();
     this.bookingsClient.confirmBooking(id).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => { this.store.updateBookingStatus(id, 'Confirmed'); this.confirming = false; if (this.selectedDetail?.id === id) this.viewDetail(id); },
-      error: () => this.confirming = false
+      next: () => {
+        this.confirming = false;
+        this.cdr.detectChanges();
+        if (this.selectedBranchId) this.loadBranchBookings(this.selectedBranchId);
+        if (this.selectedDetail?.id === id) this.viewDetail(id);
+      },
+      error: () => { this.confirming = false; this.cdr.detectChanges(); }
     });
   }
 
   completeBooking(id: number): void {
     if (this.completing) return;
     this.completing = true;
+    this.cdr.detectChanges();
     this.bookingsClient.completeBooking(id).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => { this.store.updateBookingStatus(id, 'Completed'); this.completing = false; if (this.selectedDetail?.id === id) this.viewDetail(id); },
-      error: () => this.completing = false
+      next: () => {
+        this.completing = false;
+        this.cdr.detectChanges();
+        if (this.selectedBranchId) this.loadBranchBookings(this.selectedBranchId);
+        if (this.selectedDetail?.id === id) this.viewDetail(id);
+      },
+      error: () => { this.completing = false; this.cdr.detectChanges(); }
     });
   }
 

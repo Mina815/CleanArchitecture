@@ -23,16 +23,16 @@
     </article>
   }
 
-  @if (store.isLoading()) {
+  @if (loading) {
     <p style="text-align: center; padding: 2rem 0;">جاري التحميل...</p>
-  } @else if (store.services().length === 0) {
+  } @else if (services.length === 0) {
     <article style="text-align: center; padding: 3rem 0;">
       <h3>لا توجد خدمات</h3>
       <p>لم تقم بإضافة أي خدمات بعد.</p>
     </article>
   } @else {
     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-      @for (svc of store.services(); track svc.id) {
+      @for (svc of services; track svc.id) {
         <article style="display: flex; align-items: center; gap: 1rem; padding: 1rem;">
           <div style="flex: 1;">
             <strong>{{ svc.nameAr || svc.name }}</strong>

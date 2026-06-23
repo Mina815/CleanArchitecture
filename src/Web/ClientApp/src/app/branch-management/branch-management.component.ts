@@ -1,7 +1,7 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { BranchesClient, CentersClient, BranchDto, CreateBranchCommand, UpdateBranchCommand, CenterDto, WorkingHourDto, TimeOffDto, SetWorkingHoursCommand, CreateTimeOffCommand } from '../web-api-client';
+import { BranchesClient, CentersClient, BranchDto, CreateBranchCommand, UpdateBranchCommand, CenterDto, WorkingHourDto, TimeOffDto, SetWorkingHoursCommand, CreateTimeOffCommand, StaffClient, StaffDto, CreateStaffCommand, UpdateStaffCommand, SetStaffServicesCommand, ServicesClient, ServiceDto } from '../web-api-client';
 
 @Component({
   standalone: false,
@@ -33,7 +33,7 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
   formLongitude: number | undefined;
 
   selectedBranch: BranchDto | null = null;
-  manageSection: 'hours' | 'timeoff' | null = null;
+  manageSection: 'hours' | 'timeoff' | 'staff' | null = null;
 
   workingHours: WorkingHourDto[] = [];
   hoursLoading = false;
@@ -50,7 +50,22 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
   timeOffType = 0;
   timeOffSaving = false;
 
+  staffList: StaffDto[] = [];
+  staffLoading = false;
+  showStaffForm = false;
+  editStaff: StaffDto | null = null;
+  formStaffName = '';
+  formStaffPhone = '';
+  formStaffSpecialization = '';
+  staffSaving = false;
+  services: ServiceDto[] = [];
+  servicesLoading = false;
+  selectedServiceIds = new Set<number>();
+
   dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+  private readonly staffClient = inject(StaffClient);
+  private readonly servicesClient = inject(ServicesClient);
 
   constructor(
     private branchesClient: BranchesClient,
@@ -205,21 +220,136 @@ export class BranchManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectBranch(branch: BranchDto, section: 'hours' | 'timeoff'): void {
+  selectBranch(branch: BranchDto, section: 'hours' | 'timeoff' | 'staff'): void {
     this.selectedBranch = branch;
     this.manageSection = section;
     this.showForm = false;
     this.cdr.detectChanges();
     if (section === 'hours') {
       this.loadWorkingHours(branch.id!);
-    } else {
+    } else if (section === 'timeoff') {
       this.loadTimeOffs(branch.id!);
+    } else if (section === 'staff') {
+      this.loadStaff(branch.id!);
     }
   }
 
   closeManagement(): void {
     this.selectedBranch = null;
     this.manageSection = null;
+    this.showStaffForm = false;
+    this.editStaff = null;
+  }
+
+  loadStaff(branchId: number): void {
+    this.staffLoading = true;
+    this.cdr.detectChanges();
+    this.staffClient.getBranchStaff(branchId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: result => {
+        this.staffList = result ?? [];
+        this.staffLoading = false;
+        this.cdr.detectChanges();
+        this.loadServices();
+      },
+      error: () => {
+        this.staffLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  openStaffForm(staff?: StaffDto): void {
+    this.editStaff = staff ?? null;
+    this.formStaffName = staff?.name ?? '';
+    this.formStaffPhone = staff?.phone ?? '';
+    this.formStaffSpecialization = staff?.specialization ?? '';
+    this.selectedServiceIds = new Set(staff?.serviceIds ?? []);
+    this.showStaffForm = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelStaffForm(): void {
+    this.showStaffForm = false;
+    this.editStaff = null;
+  }
+
+  saveStaff(): void {
+    if (!this.selectedBranch?.id || !this.formStaffName) return;
+    this.staffSaving = true;
+    this.cdr.detectChanges();
+
+    if (this.editStaff) {
+      this.staffClient.updateStaff(this.editStaff.id!, new UpdateStaffCommand({
+        id: this.editStaff.id,
+        name: this.formStaffName || undefined,
+        phone: this.formStaffPhone || undefined,
+        specialization: this.formStaffSpecialization || undefined,
+        serviceIds: [...this.selectedServiceIds]
+      })).pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.staffSaving = false;
+          this.showStaffForm = false;
+          this.editStaff = null;
+          this.loadStaff(this.selectedBranch!.id!);
+        },
+        error: () => {
+          this.staffSaving = false;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      this.staffClient.createStaff(new CreateStaffCommand({
+        branchId: this.selectedBranch.id,
+        name: this.formStaffName,
+        phone: this.formStaffPhone || undefined,
+        specialization: this.formStaffSpecialization || undefined,
+        serviceIds: [...this.selectedServiceIds]
+      })).pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.staffSaving = false;
+          this.showStaffForm = false;
+          this.loadStaff(this.selectedBranch!.id!);
+        },
+        error: () => {
+          this.staffSaving = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
+  deleteStaff(staff: StaffDto): void {
+    if (!confirm(`حذف ${staff.name}؟`)) return;
+    this.staffClient.deleteStaff(staff.id!).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => this.loadStaff(this.selectedBranch!.id!),
+      error: () => this.cdr.detectChanges()
+    });
+  }
+
+  loadServices(): void {
+    if (this.servicesLoading) return;
+    const centerId = this.selectedCenterId;
+    if (!centerId) return;
+    this.servicesLoading = true;
+    this.servicesClient.getServices(centerId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: result => {
+        this.services = result ?? [];
+        this.servicesLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.servicesLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  toggleService(serviceId: number): void {
+    if (this.selectedServiceIds.has(serviceId)) {
+      this.selectedServiceIds.delete(serviceId);
+    } else {
+      this.selectedServiceIds.add(serviceId);
+    }
   }
 
   loadWorkingHours(branchId: number): void {
